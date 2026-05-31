@@ -101,7 +101,7 @@ Copy the `FFTFusionReactorsLowerMinThrust` folder into `GameData` to enable it.
 
 ## Licensing
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](../../LICENSE).
 
 Copyright (c) 2022 Alexander Rogov  
 Copyright (c) 2026 Aebestach

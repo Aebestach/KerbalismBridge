@@ -142,7 +142,7 @@ In `GameData/zKerbalismSystemHeat/Settings.cfg`:
 
 ## Licensing
 
-Licensed under the [MIT License](LICENSE).
+Licensed under the [MIT License](../../LICENSE).
 
 Copyright (c) 2022 Alexander Rogov  
 Copyright (c) 2026 Aebestach

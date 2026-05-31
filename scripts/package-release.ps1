@@ -137,6 +137,7 @@ function Get-ModReadme {
 
     $text = Get-Content -LiteralPath $SourcePath -Raw
     $text = $text -replace '(?m)^> Part of \[KerbalismSystemHeatSupport\].*\r?\n', ''
+    $text = $text -replace '\]\(\.\./\.\./LICENSE\)', '](LICENSE)'
     return $text.TrimStart() + "`r`n"
 }
 
