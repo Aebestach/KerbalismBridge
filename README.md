@@ -27,19 +27,6 @@ Detailed per-mod documentation: [docs/mods/](docs/mods/)
 
 Additional dependencies are per mod (SystemHeat, FFT, NFE, HarmonyKSP, etc.) — see each mod's doc under [docs/mods/](docs/mods/).
 
-## Recommended install set
-
-Typical SystemHeat + NF stack:
-
-1. Kerbalism + zKerbalismPluginHost + HarmonyKSP  
-2. SystemHeat (+ fission/converter/harvester extras as needed)  
-3. **zKerbalismSystemHeat**  
-4. Near Future Electrical → **zKerbalismNFE** (capacitors)  
-5. Far Future Technologies → **zKerbalismFFT** (strongly pair with SystemHeat for fusion background heat)  
-6. **zKerbalismDynamicRadiation** (optional; needs SystemHeat and/or FFT integration patches)
-
-Copy only the `GameData/zKerbalism*` folders you need into KSP `GameData/`.
-
 ## Building
 
 Open `src/KerbalismSystemHeatSupport.sln` in Visual Studio and **Build Solution** (Release recommended).
