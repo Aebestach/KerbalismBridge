@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismSystemHeat"
+          assembly="zKerbalismSystemHeat"
+          dll="zKerbalismSystemHeat.dll"
+          initType="KerbalismSystemHeat.KerbalismSystemHeatCoreInit" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismSystemHeat_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismSystemHeat_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismSystemHeat_Quit" />
+</KerbalismHostedPlugin>

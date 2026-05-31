@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismFFT"
+          assembly="zKerbalismFFT"
+          dll="zKerbalismFFT.dll"
+          initType="KerbalismFFT.KerbalismFFTCoreInit" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismFFT_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismFFT_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismFFT_Quit" />
+  <RequireAssembly name="FarFutureTechnologies" />
+</KerbalismHostedPlugin>

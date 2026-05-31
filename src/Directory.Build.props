@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Shared KSP / mod reference layout: C#/KSPDLL (sibling of this repo) -->
+    <KspDllRoot>$(MSBuildThisFileDirectory)..\..\KSPDLL\</KspDllRoot>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

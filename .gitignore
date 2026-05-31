@@ -1,0 +1,30 @@
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+src/**/obj/
+src/**/bin/
+
+# Legacy autoload paths (must not exist after PluginHost migration)
+GameData/zKerbalismSystemHeat/Plugins/
+GameData/zKerbalismSystemHeat/Plugin/
+GameData/zKerbalismFFT/Plugins/
+GameData/zKerbalismFFT/Plugin/
+GameData/zKerbalismNFE/Plugins/
+GameData/zKerbalismNFE/Plugin/
+GameData/zKerbalismDynamicRadiation/Plugins/
+GameData/zKerbalismDynamicRadiation/Plugin/
+
+# Built plugins (optional: remove to commit DLLs)
+GameData/**/PluginData/*.dll
+GameData/**/PluginData/*.pdb
+GameData/**/PluginData/*.Core.dll
+
+dist/
+
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+*.pdb

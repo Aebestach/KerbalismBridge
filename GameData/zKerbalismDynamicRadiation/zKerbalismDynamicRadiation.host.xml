@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismDynamicRadiation"
+          assembly="zKerbalismDynamicRadiation"
+          dll="zKerbalismDynamicRadiation.dll" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismDynamicRadiation_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismDynamicRadiation_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismDynamicRadiation_Quit" />
+</KerbalismHostedPlugin>
