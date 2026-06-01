@@ -1,118 +1,145 @@
-# KerbalismSystemHeatSupport
+# Kerbalism Bridge
 
-Kerbalism hosted support for **SystemHeat**, **Near Future Electrical**, **Far Future Technologies**, and optional **dynamic radiation** — four separate KSP mods, one development repository.
+**Kerbalism Bridge** integrates Kerbalism with **SystemHeat**, **Near Future Electrical**, **Far Future Technologies**, and optional **dynamic radiation**. One repository builds several installable `GameData` packages: a **main bridge** (three DLLs) plus **satellite** mods you can add as needed.
 
 **Version:** 1.0.0 (mod family release)
 
-All plugins load through [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) after Kerbalism is present. Each mod remains a **separate install**; players only need the folders they use.
+All Bridge plugins load through [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) after Kerbalism is present. **Do not** put Bridge DLLs in `Plugins/`.
 
-## Included mods
+---
 
-| Mod folder | DLL | Purpose |
-|------------|-----|---------|
-| `GameData/zKerbalismSystemHeat` | `zKerbalismSystemHeat.dll` | Kerbalism resource / planner / background integration for [SystemHeat](https://github.com/post-kerbin-mining-corporation/SystemHeat) |
-| `GameData/zKerbalismFFT` | `zKerbalismFFT.dll` | Kerbalism integration for [Far Future Technologies](https://github.com/post-kerbin-mining-corporation/FarFutureTechnologies) |
-| `GameData/zKerbalismNFE` | `zKerbalismNFE.dll` | Kerbalism integration for NFE `DischargeCapacitor` parts |
-| `GameData/zKerbalismDynamicRadiation` | `zKerbalismDynamicRadiation.dll` | Optional dynamic radiation decay for integrated fission/fusion parts |
+## How integration works: Layer A and Layer B
 
-Detailed per-mod documentation: [docs/mods/](docs/mods/)
+Kerbalism Bridge does **not** use one integration style for every part. It splits work into two layers (legacy names **Layer A** and **Layer B**). Pick the layer that matches what the part **originally** uses. **Do not mix both layers on the same part.**
 
-## Common requirements
+| | **Layer A — Process layer** | **Layer B — Native layer** |
+|---|------------------------------|----------------------------|
+| **GameData / DLL** | `zKerbalismProcess` | `zKerbalismNative` |
+| **Best for** | Stock-style or Kerbalism-replaceable converters, harvesters, **fuel cells** | Mod **custom native** C# modules |
+| **Approach** | MM swaps the part to Kerbalism `ProcessController` / `Harvester`; optionally upgrades to `ProcessControllerSystemHeat` / `HarvesterSystemHeat` | **Keeps** the mod’s native module; adds a `*KerbalismUpdater` sidecar |
+| **Resources** | Kerbalism processes, brokers, background sim | Harmony blocks native resource IO; Kerbalism accounts for consumption / production |
+| **Heat** | Optional SystemHeat loop via `ModuleSystemHeat` when you want loop waste heat | Native module still drives heat (e.g. `UpdateFlux()`); works with or without SystemHeat depending on the mod |
+| **Recipes** | Usually needs Kerbalism Profile + Configure | Usually **no** extra ISRU Profile |
 
-| Required for all | Notes |
-|------------------|-------|
+**Quick rule:**
+
+```
+Part has ModuleResourceConverter / ModuleResourceHarvester
+(or a mod pack already replaced it with ProcessController)
+  → Layer A (Process)
+
+Part has a mod-native module (ModuleSystemHeat*, FusionReactor, DischargeCapacitor, …)
+  → Layer B (Native) — add Updater; do not replace with ProcessControllerSystemHeat
+```
+
+**Examples**
+
+- **Layer A:** Kerbalism chemical plants / drills; Sterling MAEC **fuel cells**; FFT industrial smelters (Process + optional SystemHeat).
+- **Layer B:** SystemHeat fission reactors / engines; NFE capacitors and SH recycler; FFT fusion reactors / engines; SpaceDust harvesters.
+
+Full architecture write-up: [docs/architecture/KerbalismBridge-Architecture-en.md](docs/architecture/KerbalismBridge-Architecture-en.md) (中文: [KerbalismBridge-Architecture.md](docs/architecture/KerbalismBridge-Architecture.md)).
+
+---
+
+## Packages
+
+### Main bridge (minimum SystemHeat integration)
+
+Install all three for a typical SystemHeat + Kerbalism setup.
+
+| GameData folder | DLL | Role |
+|-----------------|-----|------|
+| `zKerbalismBridge` | `zKerbalismBridge.dll` | **Shared runtime** — Harmony bootstrap, background thermal sim, editor sim, settings. **Not** Layer A or B; required by Process and Native. |
+| `zKerbalismProcess` | `zKerbalismProcess.dll` | **Layer A (Process)** — `ProcessControllerSystemHeat`, `HarvesterSystemHeat`, converter / harvester / radiator MM |
+| `zKerbalismNative` | `zKerbalismNative.dll` | **Layer B (Native)** — `*KerbalismUpdater`, fission, NFE capacitor / recycler, SpaceDust, etc. |
+
+Load order: **Bridge → Process / Native** (each `*.host.xml` declares `RequireAssembly` for `zKerbalismBridge`).
+
+```
+Kerbalism
+    └── zKerbalismBridge          ← runtime
+            ├── zKerbalismProcess ← Layer A (+ SystemHeat when patches apply)
+            └── zKerbalismNative  ← Layer B (per-mod :NEEDS[...])
+```
+
+### Satellites (optional)
+
+| GameData folder | DLL | Role |
+|-----------------|-----|------|
+| `zKerbalismFFT` | `zKerbalismFFT.dll` | Far Future Technologies — profile, industrial **Layer A** cfg, fusion / antimatter **Layer B** C# |
+| `zKerbalismDynamicRadiation` | `zKerbalismDynamicRadiation.dll` | Post-shutdown radiation decay on integrated fission / fusion parts |
+| `zKerbalismResourceAudit` | `zKerbalismResourceAudit.dll` | Static report of parts whose resources are not integrated with Kerbalism/Bridge (`Logs/`) |
+
+**NFE capacitors** ship in **`zKerbalismNative`** (no separate NFE package). **SterlingSystemsKerbalism** is maintained by Sterling Systems; this repo only ships `SterlingSystems.cfg` as the FINAL heat bridge under Process.
+
+---
+
+## Requirements
+
+| Required | Notes |
+|----------|-------|
 | [Kerbalism](https://github.com/Kerbalism/Kerbalism) 3.32+ | Bootstrap `*.kbin` workflow |
-| [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | Deferred loader; **do not** put these DLLs in `Plugins/` |
+| [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | Deferred loader for Bridge DLLs |
 | [Module Manager](https://github.com/sarbian/ModuleManager) | Patches |
 
-Additional dependencies are per mod (SystemHeat, FFT, NFE, HarmonyKSP, etc.) — see each mod's doc under [docs/mods/](docs/mods/).
+Per-package dependencies (SystemHeat, FFT, NFE, …): see [docs/mods/](docs/mods/) — **player-facing READMEs copied into release zips**.
+
+---
+
+## Installation
+
+1. Install Kerbalism, Module Manager, and **zKerbalismPluginHost**.
+2. Remove legacy `GameData/zKerbalismSystemHeat`, `GameData/zKerbalismNFE`, and any old `Plugins/` copies of Bridge DLLs.
+3. Copy **`zKerbalismBridge` + `zKerbalismProcess` + `zKerbalismNative`** into `GameData` (minimum bridge).
+4. Add `zKerbalismFFT` / `zKerbalismDynamicRadiation` if you use those mods.
+5. Delete `ModuleManager.ConfigCache` and restart KSP.
+
+---
 
 ## Building
 
-Open `src/KerbalismSystemHeatSupport.sln` in Visual Studio and **Build Solution** (Release recommended).
-
-Outputs (one DLL per project):
+Open `src/KerbalismBridge.sln` in Visual Studio and build **Release**. KSP references: `../KSPDLL/` (sibling folder under `C#/`).
 
 ```text
-GameData/zKerbalismSystemHeat/PluginData/zKerbalismSystemHeat.dll
+msbuild src\KerbalismBridge.sln /p:Configuration=Release
+```
+
+Outputs:
+
+```text
+GameData/zKerbalismBridge/PluginData/zKerbalismBridge.dll
+GameData/zKerbalismProcess/PluginData/zKerbalismProcess.dll
+GameData/zKerbalismNative/PluginData/zKerbalismNative.dll
 GameData/zKerbalismFFT/PluginData/zKerbalismFFT.dll
-GameData/zKerbalismNFE/PluginData/zKerbalismNFE.dll
 GameData/zKerbalismDynamicRadiation/PluginData/zKerbalismDynamicRadiation.dll
 ```
 
-KSP / mod references use the shared layout `../KSPDLL/` (sibling of this repo under `C#/`). Intermediate files stay under each project's `obj/`.
+Build **Bridge** before Process / Native on a clean tree (solution project dependencies).
 
-Command line:
-
-```text
-msbuild src\KerbalismSystemHeatSupport.sln /p:Configuration=Release
-```
-
-## Optional patches
-
-| Path | Mod |
-|------|-----|
-| `Extras/zKerbalismSystemHeat/SystemHeatFissionReactorsLowerMinThrust/` | Lower fission reactor minimum throttle |
-| `Extras/zKerbalismFFT/FFTFusionReactorsLowerMinThrust/` | Lower fusion reactor minimum throttle |
-
-Copy the desired extra folder into KSP `GameData/`. Optional patches are also included inside each mod release zip under `Extras/` (see below).
+---
 
 ## Release packages
 
-After a **Release** build, create four player zips (GameData + Extras + LICENSE + README + CHANGELOG). **`-Version` is manual** — any release label works (`1.0.0`, `1.0.0-beta.1`, `v1.0.0-beta.1`; a leading `v` is optional).
-
 ```powershell
-.\scripts\package-release.ps1 -Version 1.0.0-beta.1
+.\scripts\package-release.ps1 -Version 1.0.0
 ```
 
-Skip MSBuild if DLLs are already built:
+Produces five zips: **KerbalismBridge**, **KerbalismProcess**, **KerbalismNative**, **KerbalismFFT**, **KerbalismDynamicRadiation**. Each zip includes that mod’s README from `docs/mods/`.
 
-```powershell
-.\scripts\package-release.ps1 -Version 1.0.0-beta.1 -SkipBuild
-```
+---
 
-Output file names (example for `1.0.0-beta.1`):
+## Documentation
 
-```text
-dist/KerbalismSystemHeat.v1.0.0-beta.1.zip
-dist/KerbalismFFT.v1.0.0-beta.1.zip
-dist/KerbalismNFE.v1.0.0-beta.1.zip
-dist/KerbalismDynamicRadiation.v1.0.0-beta.1.zip
-```
+| Path | Purpose |
+|------|---------|
+| [README-CN.md](README-CN.md) | 中文版仓库说明 |
+| [docs/architecture/](docs/architecture/) | Process / Native (Layer A / B) architecture |
+| [docs/mods/](docs/mods/) | Per-mod install & feature docs (also shipped in releases) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md) | Fork and copyright notices |
 
-Each zip is extracted into the KSP install root (merges `GameData/`). Contents:
-
-| Path in zip | Contents |
-|-------------|----------|
-| `GameData/zKerbalismXXX/` | Mod cfg, host manifest, PluginData DLL |
-| `Extras/zKerbalismXXX/` | Optional MM patches (SystemHeat & FFT only) |
-| `LICENSE` | MIT license |
-| `README.md` | Per-mod readme (from `docs/mods/`) |
-| `CHANGELOG.md` | This mod's release notes (from root `CHANGELOG.md`) |
-
-Upload all four files to one GitHub Release (e.g. tag `v1.0.0-beta.1`, matching `-Version`).
-
-## Repository layout
-
-```text
-KerbalismSystemHeatSupport/
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-├── docs/mods/          detailed per-mod READMEs
-├── docs/changelog/     upstream history (judicator forks)
-├── docs/legal/         attribution
-├── src/                four C# projects + solution
-├── scripts/            release packaging (package-release.ps1)
-├── dist/               generated zips (gitignored)
-├── GameData/           four mod GameData trees
-└── Extras/             optional MM patches
-```
+---
 
 ## Licensing
 
-MIT License — see [LICENSE](LICENSE). Fork attribution: [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md).
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md).
+See [LICENSE](LICENSE). Runtime dependencies remain under their respective licenses.

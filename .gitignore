@@ -7,6 +7,12 @@ src/**/obj/
 src/**/bin/
 
 # Legacy autoload paths (must not exist after PluginHost migration)
+GameData/zKerbalismBridge/Plugins/
+GameData/zKerbalismBridge/Plugin/
+GameData/zKerbalismProcess/Plugins/
+GameData/zKerbalismProcess/Plugin/
+GameData/zKerbalismNative/Plugins/
+GameData/zKerbalismNative/Plugin/
 GameData/zKerbalismSystemHeat/Plugins/
 GameData/zKerbalismSystemHeat/Plugin/
 GameData/zKerbalismFFT/Plugins/
@@ -15,6 +21,8 @@ GameData/zKerbalismNFE/Plugins/
 GameData/zKerbalismNFE/Plugin/
 GameData/zKerbalismDynamicRadiation/Plugins/
 GameData/zKerbalismDynamicRadiation/Plugin/
+GameData/zKerbalismResourceAudit/Plugins/
+GameData/zKerbalismResourceAudit/Plugin/
 
 # Built plugins (optional: remove to commit DLLs)
 GameData/**/PluginData/*.dll

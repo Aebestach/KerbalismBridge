@@ -4,8 +4,8 @@ using System.Reflection;
 namespace KerbalismFFT
 {
 	/// <summary>
-	/// Calls KerbalismSystemHeat core via reflection so this assembly does not reference
-	/// zKerbalismSystemHeat.Core.dll at compile time (Core lives in PluginData and is loaded by the bootstrap).
+	/// Calls Kerbalism Bridge core via reflection so this assembly does not reference
+	/// zKerbalismBridge.dll at compile time (Bridge lives in PluginData and is loaded by the bootstrap).
 	/// </summary>
 	internal static class SystemHeatBackgroundBridge
 	{
@@ -39,10 +39,10 @@ namespace KerbalismFFT
 			lookupDone = true;
 			foreach (AssemblyLoader.LoadedAssembly loaded in AssemblyLoader.loadedAssemblies)
 			{
-				if (loaded.assembly.GetName().Name != "zKerbalismSystemHeat.Core")
+				if (loaded.assembly.GetName().Name != "zKerbalismBridge")
 					continue;
 
-				Type type = loaded.assembly.GetType("KerbalismSystemHeat.SystemHeatBackgroundThermal");
+				Type type = loaded.assembly.GetType("KerbalismBridge.SystemHeatBackgroundThermal");
 				if (type == null)
 					break;
 

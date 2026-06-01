@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E3F4A5B6-C7D8-4901-E2F3-A4B5C6D7E8F9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>KerbalismNative</RootNamespace>
+    <AssemblyName>zKerbalismNative</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <DeployOutputPath>$(MSBuildProjectDirectory)\..\..\GameData\zKerbalismNative\PluginData\</DeployOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>$(DeployOutputPath)</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>$(DeployOutputPath)</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\KSPDLL\others\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kerbalism">
+      <HintPath>..\..\..\..\KSPDLL\others\Kerbalism.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NearFutureElectrical">
+      <HintPath>..\..\..\..\KSPDLL\others\NearFutureElectrical.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="SystemHeat">
+      <HintPath>..\..\..\..\KSPDLL\others\SystemHeat.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bridge\zKerbalismBridge.csproj">
+      <Project>{C1D2E3F4-A5B6-4789-C0D1-E2F3A4B5C6D7}</Project>
+      <Name>zKerbalismBridge</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Automation\ComputerDevicesPatch.cs" />
+    <Compile Include="Core\KerbalismNativeCoreInit.cs" />
+    <Compile Include="Core\KerbalismNativeHarmony.cs" />
+    <Compile Include="Core\NativeUtils.cs" />
+    <Compile Include="NearFutureElectrical\Automation\CapacitorDeviceCollector.cs" />
+    <Compile Include="NearFutureElectrical\Automation\CapacitorDevices.cs" />
+    <Compile Include="NearFutureElectrical\CapacitorHarmonyPatches.cs" />
+    <Compile Include="NearFutureElectrical\CapacitorResourceSim.cs" />
+    <Compile Include="NearFutureElectrical\NFECapacitorKerbalismUpdater.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SpaceDust\SpaceDustHarvesterKerbalismUpdater.cs" />
+    <Compile Include="SpaceDust\SpaceDustHarmonyPatches.cs" />
+    <Compile Include="SpaceDust\SpaceDustResourceBlocker.cs" />
+    <Compile Include="SystemHeat\Converters\SHNativeConverterResourceSim.cs" />
+    <Compile Include="SystemHeat\Converters\SystemHeatConverterKerbalismUpdater.cs" />
+    <Compile Include="SystemHeat\Fission\Automation\FissionDeviceCollector.cs" />
+    <Compile Include="SystemHeat\Fission\Automation\FissionReactorDevices.cs" />
+    <Compile Include="SystemHeat\Fission\FissionReactorResourceSim.cs" />
+    <Compile Include="SystemHeat\Fission\SHFissionEngineKerbalismUpdater.cs" />
+    <Compile Include="SystemHeat\Fission\SHFissionReactorKerbalismUpdater.cs" />
+    <Compile Include="SystemHeat\Harmony\SystemHeatHarmonyPatches.cs" />
+    <Compile Include="SystemHeat\Harvesters\SystemHeatHarvesterKerbalismUpdater.cs" />
+    <Compile Include="SystemHeat\Radiators\SHRadiatorKerbalism.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

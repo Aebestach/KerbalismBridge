@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismProcess"
+          assembly="zKerbalismProcess"
+          dll="zKerbalismProcess.dll"
+          initType="KerbalismProcess.KerbalismProcessCoreInit" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismBridge_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismBridge_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismBridge_Quit" />
+  <RequireAssembly name="zKerbalismBridge" />
+</KerbalismHostedPlugin>

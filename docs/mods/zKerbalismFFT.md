@@ -1,4 +1,4 @@
-> Part of [KerbalismSystemHeatSupport](../../README.md). Build: `src/KerbalismSystemHeatSupport.sln`.
+> Part of [Kerbalism Bridge](../../README.md). Build: `src/KerbalismBridge.sln`.
 # Kerbalism FarFutureTechnologies
 
 **Version:** 1.0.0
@@ -22,7 +22,7 @@ Community fork of [judicator/KerbalismFFT](https://github.com/judicator/Kerbalis
 * EC production and propellant consumption on **loaded** vessels: routed through Kerbalism (native FFT `GeneratePower` resource IO is blocked when the KerbalismFFT updater is present). Reactor throttle adjusts automatically (respecting minimum throttle) to meet electricity demand. Upstream 0.2.0 only integrated **unloaded** vessels through Kerbalism.
 * Capacitor charging EC before startup: routed through Kerbalism on loaded and unloaded vessels (native `RechargeCapacitors` resource IO is blocked when the updater is present).
 * **Unloaded** vessels: background simulation runs at full reactor power (minimum throttle is always on; the remainder feeds the vessel EC pool). Capacitor charging is simulated in background before startup.
-* Fusion waste heat on unloaded vessels is included in [KerbalismSystemHeat](https://github.com/Aebestach/KerbalismSystemHeat) background thermal simulation when that mod is installed.
+* Fusion waste heat on unloaded vessels is included in [zKerbalismBridge](https://github.com/Aebestach/KerbalismBridge) background thermal simulation when that mod is installed.
 
 ### Fusion engines (`ModuleFusionEngine` with built-in fusion reactor)
 
@@ -40,7 +40,11 @@ FFT `fft-*` engines get unlimited ignitions and burn-duration limits where patch
 
 If the [CryoTanks](https://github.com/post-kerbin-mining-corporation/CryoTanks) mod is installed, FFT (and other) parts with `ModuleCryoTank` cooling get a `PlannerController` entry for cryogenic cooling EC in the Kerbalism planner.
 
-### Kerbalism Automation (Planner â†?Automation â†?vessel devices)
+### Industrial processors (with zKerbalismProcess)
+
+`fft-antimatter-factory-1` and `fft-nuclear-smelter-375-1` use Kerbalism `ProcessController` + `ProcessControllerSystemHeat` (`FFTIndustrialProfile.cfg`, `Patches/FFTIndustrialConverters.cfg`, and `ModsSupport/FarFutureTechnologies.cfg`). Resource flows go through Kerbalism; loop heat stays on SystemHeat.
+
+### Kerbalism Automation (Planner ??Automation ??vessel devices)
 
 When Kerbalism **Automation** is enabled, integrated fusion reactors and fusion-engine reactors appear as scriptable devices on loaded and unloaded vessels (for example **FFT fusion reactor**). Simplified Chinese device strings are in `Localization/zh-cn.cfg`; broker and antimatter messages are localized in `Localization/ru.cfg` (Automation device names fall back to English in Russian).
 
@@ -52,21 +56,21 @@ Adds supplies for Antimatter, LqdDeuterium, and LqdHe3 on the **KerbalismSupport
 
 ## Dependencies
 
-Install these separately; they are **not** included in release packages (unlike upstream 0.1.1â€?.2.0 downloads that bundled KerbalismSystemHeat).
+Install these separately; they are **not** included in release packages.
 
-* [Kerbalism](https://github.com/Kerbalism/Kerbalism) â€?3.32+ recommended (Bootstrap `*.kbin` workflow)
-* [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) â€?loads this mod after Kerbalism is present (same pattern as zKerbalismSystemHeat / zKerbalismNFE)
-* [HarmonyKSP](https://github.com/KSPModdingLibs/HarmonyKSP) â€?required by Kerbalism 3.32+; Harmony patches need `0Harmony` at runtime (loaded with Kerbalism)
+* [Kerbalism](https://github.com/Kerbalism/Kerbalism) ? 3.32+ recommended (Bootstrap `*.kbin` workflow)
+* [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) ? loads this mod after Kerbalism is present (same pattern as other Kerbalism Bridge packages)
+* [HarmonyKSP](https://github.com/KSPModdingLibs/HarmonyKSP) ? required by Kerbalism 3.32+; Harmony patches need `0Harmony` at runtime (loaded with Kerbalism)
 * [FarFutureTechnologies](https://github.com/post-kerbin-mining-corporation/FarFutureTechnologies)
-* [SystemHeat](https://github.com/post-kerbin-mining-corporation/SystemHeat) â€?required by FFT and this mod's assembly load order
-* [KerbalismSystemHeat (1.0.0+)](https://github.com/Aebestach/KerbalismSystemHeat) â€?**strongly recommended**; required for fusion waste heat in unloaded-vessel SystemHeat loop simulation (optional at compile time; detected at runtime via reflection)
+* [SystemHeat](https://github.com/post-kerbin-mining-corporation/SystemHeat) ? required by FFT and this mod's assembly load order
+* [zKerbalismBridge](https://github.com/Aebestach/KerbalismBridge) ? **strongly recommended**; required for fusion waste heat in unloaded-vessel SystemHeat loop simulation (optional at compile time; detected at runtime via reflection)
 * [Module Manager (latest preferred)](https://github.com/sarbian/ModuleManager)
-* [CryoTanks](https://github.com/post-kerbin-mining-corporation/CryoTanks) â€?optional; enables cryo-tank planner patches only
+* [CryoTanks](https://github.com/post-kerbin-mining-corporation/CryoTanks) ? optional; enables cryo-tank planner patches only
 
 
 ## Installation
 
-Remove any existing `zKerbalismFFT` folder from `GameData` before installing. If upgrading from a preâ€“PluginHost build, delete `GameData/zKerbalismFFT/Plugin/` (the old autoload path).
+Remove any existing `zKerbalismFFT` folder from `GameData` before installing. If upgrading from a pre?PluginHost build, delete `GameData/zKerbalismFFT/Plugin/` (the old autoload path).
 
 Then merge the `GameData` folder from the release archive into your Kerbal Space Program `GameData` folder.
 
@@ -77,7 +81,7 @@ The plugin is loaded by **zKerbalismPluginHost** from:
 
 ### Building from Visual Studio
 
-Open `src/KerbalismSystemHeatSupport.sln` and build the **zKerbalismFFT** project. Output is written directly to:
+Open `src/KerbalismBridge.sln` and build the **zKerbalismFFT** project. Output is written directly to:
 
 - `GameData/zKerbalismFFT/PluginData/zKerbalismFFT.dll`
 
@@ -88,15 +92,8 @@ Intermediate files stay under `src/obj` (not `bin/Release`). KSP/Kerbalism/FFT r
 
 In `GameData/zKerbalismFFT/Settings.cfg`:
 
-* `FFT_Engines_Radioactivity_Coeff` â€?multiplies radiation from static FFT engine emitters (default `1.0`; lower if engines feel too radioactive)
-* `FFT_FusionReactors_Radioactivity_Coeff` â€?multiplies radiation from fusion reactor emitters (default `1.0`)
-
-
-## Optional patch
-
-Optional patch in `Extras/FFTFusionReactorsLowerMinThrust`: lowers fusion reactor minimum throttle from 10% to 5%.
-
-Copy the `FFTFusionReactorsLowerMinThrust` folder into `GameData` to enable it.
+* `FFT_Engines_Radioactivity_Coeff` ??multiplies radiation from static FFT engine emitters (default `1.0`; lower if engines feel too radioactive)
+* `FFT_FusionReactors_Radioactivity_Coeff` ??multiplies radiation from fusion reactor emitters (default `1.0`)
 
 
 ## Licensing
@@ -106,4 +103,4 @@ Licensed under the [MIT License](../../LICENSE).
 Copyright (c) 2022 Alexander Rogov  
 Copyright (c) 2026 Aebestach
 
-Runtime dependencies (Kerbalism, FarFutureTechnologies, SystemHeat, KerbalismSystemHeat, ModuleManager, HarmonyKSP, etc.) remain under their respective licenses and must be obtained separately.
+Runtime dependencies (Kerbalism, FarFutureTechnologies, SystemHeat, Kerbalism Bridge, ModuleManager, HarmonyKSP, etc.) remain under their respective licenses and must be obtained separately.

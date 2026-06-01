@@ -5,7 +5,7 @@ namespace KerbalismDynamicRadiation
 {
 	/// <summary>
 	/// Scales Kerbalism <see cref="Emitter"/> output with fission/fusion power source state.
-	/// Added by ModuleManager to parts patched by zKerbalismSystemHeat and zKerbalismFFT.
+	/// Added by ModuleManager to parts patched by zKerbalismProcess, zKerbalismNative, and zKerbalismFFT.
 	/// </summary>
 	public class DynamicRadiationController : PartModule
 	{
@@ -15,7 +15,9 @@ namespace KerbalismDynamicRadiation
 		[KSPField(isPersistant = true)]
 		public string powerModuleId = "";
 
-		// "enabled" = FusionReactor / ModuleFusionEngine Enabled; "thrust" = ModuleEngines throttle.
+		// "enabled" = FusionReactor / ModuleFusionEngine Enabled; "thrust" = ModuleEngines throttle;
+		// "running" = ProcessController running; "any_running" = any matching module running;
+		// "converter" = ModuleResourceConverter / ModuleSystemHeatConverter active.
 		[KSPField(isPersistant = true)]
 		public string powerActiveMode = "enabled";
 
@@ -56,8 +58,11 @@ namespace KerbalismDynamicRadiation
 				return;
 
 			emitter = DynamicRadiationLogic.FindPrimaryEmitter(part, ref emitterIndex);
-			if (emitter != null && emitterMaxRadiation <= 0.0)
-				emitterMaxRadiation = emitter.radiation;
+			emitterMaxRadiation = DynamicRadiationLogic.ResolvePeakRadiation(
+				part,
+				emitter,
+				minEmissionPercent,
+				emitterMaxRadiation);
 
 			if (emitter != null && !reactorHasStarted)
 			{
@@ -67,6 +72,25 @@ namespace KerbalismDynamicRadiation
 			}
 
 			initialized = emitter != null && emitterMaxRadiation > 0.0;
+		}
+
+		public void Update()
+		{
+			if (!Features.Radiation)
+				return;
+
+			if (!initialized)
+				TryInitialize();
+
+			if (!initialized || emitter == null)
+				return;
+
+			// Editor PAW should show configured peak radiation, not "none".
+			if (Lib.IsEditor())
+			{
+				emitter.running = true;
+				emitter.radiation = emitterMaxRadiation;
+			}
 		}
 
 		public void FixedUpdate()
@@ -116,19 +140,35 @@ namespace KerbalismDynamicRadiation
 			double peakRadiation = Lib.Proto.GetDouble(module_snapshot, "emitterMaxRadiation");
 			if (peakRadiation <= 0.0)
 			{
-				for (int i = 0; i < part_snapshot.modules.Count; i++)
-				{
-					ProtoPartModuleSnapshot pm = part_snapshot.modules[i];
-					if (pm.moduleName != "Emitter")
-						continue;
+				peakRadiation = DynamicRadiationLogic.ResolvePeakRadiation(
+					part_prefab,
+					null,
+					minEmissionPercent,
+					0.0);
 
-					double rad = Lib.Proto.GetDouble(pm, "radiation");
-					if (rad > peakRadiation)
-						peakRadiation = rad;
+				if (peakRadiation <= 0.0)
+				{
+					for (int i = 0; i < part_snapshot.modules.Count; i++)
+					{
+						ProtoPartModuleSnapshot pm = part_snapshot.modules[i];
+						if (pm.moduleName != "Emitter")
+							continue;
+
+						double rad = Lib.Proto.GetDouble(pm, "radiation");
+						if (rad > peakRadiation)
+							peakRadiation = rad;
+					}
 				}
 
 				if (peakRadiation <= 0.0)
 					return string.Empty;
+
+				if (minEmissionPercent > 0.0 && minEmissionPercent < 100.0)
+				{
+					double inferred = peakRadiation * 100.0 / minEmissionPercent;
+					if (inferred > peakRadiation * 1.01)
+						peakRadiation = inferred;
+				}
 
 				Lib.Proto.Set(module_snapshot, "emitterMaxRadiation", peakRadiation);
 			}

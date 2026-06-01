@@ -1,7 +1,9 @@
-> Part of [KerbalismSystemHeatSupport](../../README.md). Build: `src/KerbalismSystemHeatSupport.sln`.
+> Part of [Kerbalism Bridge](../../README.md). Build: `src/KerbalismBridge.sln`.
 # zKerbalismDynamicRadiation
 
-Optional Kerbalism extension that restores **dynamic radiation** for nuclear and fusion parts integrated by [zKerbalismSystemHeat](https://github.com/Aebestach/KerbalismSystemHeat) and/or [zKerbalismFFT](https://github.com/Aebestach/KerbalismFFT).
+**Version:** 1.0.0
+
+Optional Kerbalism extension that restores **dynamic radiation** for nuclear and fusion parts integrated by [zKerbalismNative](https://github.com/Aebestach/KerbalismBridge) and/or [zKerbalismFFT](https://github.com/Aebestach/KerbalismBridge).
 
 ## Behavior
 
@@ -9,9 +11,9 @@ Optional Kerbalism extension that restores **dynamic radiation** for nuclear and
 - **Running:** emitter on at full configured `radiation` (from Kerbalism / NFE / FFT patches).
 - **After shutdown:** exponential decay toward minimum; works in flight and in background (unloaded vessel).
 
-Improvements over KerbalismSystemHeat 0.4.0:
+Improvements over older monolithic Kerbalism?SystemHeat integrations:
 
-- Separate mod â€?no bootstrap / hard dependency on SystemHeat or FFT assemblies.
+- Separate mod ??no bootstrap / hard dependency on SystemHeat or FFT assemblies.
 - Picks the **highest positive** `Emitter` on the part (avoids `First()` on shield emitters).
 - Matches power module by `moduleID` / `ModuleID` when multiple reactors/engines exist.
 - Tunable defaults in `Settings.cfg`.
@@ -20,8 +22,8 @@ Improvements over KerbalismSystemHeat 0.4.0:
 
 | Required | Optional (patches apply only if folder present) |
 |----------|--------------------------------------------------|
-| Kerbalism + **FeatureRadiation** | `zKerbalismSystemHeat` â€?fission reactors/engines |
-| [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | `zKerbalismFFT` + Far Future Technologies â€?fusion reactors/engines, static-emitter FFT rocket engines |
+| Kerbalism + **FeatureRadiation** | `zKerbalismNative` ? fission reactors/engines |
+| [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | `zKerbalismFFT` + Far Future Technologies ? fusion reactors/engines, static-emitter FFT rocket engines |
 | Module Manager | |
 
 ## Install
@@ -29,7 +31,7 @@ Improvements over KerbalismSystemHeat 0.4.0:
 Copy `GameData/zKerbalismDynamicRadiation` into KSP `GameData` and install **zKerbalismPluginHost** separately. Build the DLL with Visual Studio or:
 
 ```text
-msbuild src\KerbalismSystemHeatSupport.sln /p:Configuration=Release
+msbuild src\KerbalismBridge.sln /p:Configuration=Release
 ```
 
 Output:

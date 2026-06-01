@@ -1,17 +1,16 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Build Release (optional) and pack four KSP mod zips for GitHub Release.
+  Build Release (optional) and pack six KSP mod zips for GitHub Release.
 
 .DESCRIPTION
   Each zip contains:
     GameData/zKerbalismXXX/
-    Extras/...          (SystemHeat and FFT only, when present)
     LICENSE
     README.md           (from docs/mods/, monorepo header stripped)
     CHANGELOG.md        (monorepo header + this mod's section from root CHANGELOG)
 
-  Output: dist/KerbalismSystemHeat.v<Version>.zip (Version is manual, e.g. 1.0.0-beta.1)
+  Output: dist/KerbalismBridge.v<Version>.zip (Version is manual, e.g. 1.0.0-beta.1)
 
 .EXAMPLE
   .\scripts\package-release.ps1 -Version 1.0.0
@@ -46,12 +45,28 @@ $VersionLabel = "v$VersionTag"
 
 $Mods = @(
     @{
-        Id           = "zKerbalismSystemHeat"
-        ReleaseName  = "KerbalismSystemHeat"
-        GameDataDir  = "GameData\zKerbalismSystemHeat"
-        DllName      = "zKerbalismSystemHeat.dll"
-        ReadmeSource = "docs\mods\zKerbalismSystemHeat.md"
-        ExtrasDir    = "Extras\zKerbalismSystemHeat"
+        Id           = "zKerbalismBridge"
+        ReleaseName  = "KerbalismBridge"
+        GameDataDir  = "GameData\zKerbalismBridge"
+        DllName      = "zKerbalismBridge.dll"
+        ReadmeSource = "docs\mods\KerbalismBridge.md"
+        ChangelogId  = "zKerbalismBridge"
+    },
+    @{
+        Id           = "zKerbalismProcess"
+        ReleaseName  = "KerbalismProcess"
+        GameDataDir  = "GameData\zKerbalismProcess"
+        DllName      = "zKerbalismProcess.dll"
+        ReadmeSource = "docs\mods\KerbalismBridge.md"
+        ChangelogId  = "zKerbalismProcess"
+    },
+    @{
+        Id           = "zKerbalismNative"
+        ReleaseName  = "KerbalismNative"
+        GameDataDir  = "GameData\zKerbalismNative"
+        DllName      = "zKerbalismNative.dll"
+        ReadmeSource = "docs\mods\KerbalismBridge.md"
+        ChangelogId  = "zKerbalismNative"
     },
     @{
         Id           = "zKerbalismFFT"
@@ -59,15 +74,7 @@ $Mods = @(
         GameDataDir  = "GameData\zKerbalismFFT"
         DllName      = "zKerbalismFFT.dll"
         ReadmeSource = "docs\mods\zKerbalismFFT.md"
-        ExtrasDir    = "Extras\zKerbalismFFT"
-    },
-    @{
-        Id           = "zKerbalismNFE"
-        ReleaseName  = "KerbalismNFE"
-        GameDataDir  = "GameData\zKerbalismNFE"
-        DllName      = "zKerbalismNFE.dll"
-        ReadmeSource = "docs\mods\zKerbalismNFE.md"
-        ExtrasDir    = $null
+        ChangelogId  = "zKerbalismFFT"
     },
     @{
         Id           = "zKerbalismDynamicRadiation"
@@ -75,7 +82,15 @@ $Mods = @(
         GameDataDir  = "GameData\zKerbalismDynamicRadiation"
         DllName      = "zKerbalismDynamicRadiation.dll"
         ReadmeSource = "docs\mods\zKerbalismDynamicRadiation.md"
-        ExtrasDir    = $null
+        ChangelogId  = "zKerbalismDynamicRadiation"
+    },
+    @{
+        Id           = "zKerbalismResourceAudit"
+        ReleaseName  = "KerbalismResourceAudit"
+        GameDataDir  = "GameData\zKerbalismResourceAudit"
+        DllName      = "zKerbalismResourceAudit.dll"
+        ReadmeSource = "docs\mods\zKerbalismResourceAudit.md"
+        ChangelogId  = "zKerbalismResourceAudit"
     }
 )
 
@@ -100,7 +115,7 @@ function Get-ModChangelog {
         ""
         "**Version:** $VersionLabel"
         ""
-        "Part of KerbalismSystemHeatSupport. Full monorepo history is in the GitHub repository."
+        "Part of KerbalismBridge. Full monorepo history is in the GitHub repository."
         ""
         "---"
         ""
@@ -127,8 +142,7 @@ function Get-ModChangelog {
         throw "Could not find changelog section for $ModId in $SourcePath"
     }
 
-    # Drop upstream doc links that only work in the repo
-    $body = ($modLines | Where-Object { $_ -notmatch '^\s*Upstream history:' }) -join "`r`n"
+    $body = ($modLines -join "`r`n")
     return ($header -join "`r`n") + $body + "`r`n"
 }
 
@@ -136,7 +150,8 @@ function Get-ModReadme {
     param([string] $SourcePath)
 
     $text = Get-Content -LiteralPath $SourcePath -Raw
-    $text = $text -replace '(?m)^> Part of \[KerbalismSystemHeatSupport\].*\r?\n', ''
+    $text = $text -replace '(?m)^> Part of \[Kerbalism Bridge\].*\r?\n', ''
+    $text = $text -replace '(?m)^> Part of \[Kerbalism Bridge\].*\r?\n', ''
     $text = $text -replace '\]\(\.\./\.\./LICENSE\)', '](LICENSE)'
     return $text.TrimStart() + "`r`n"
 }
@@ -144,7 +159,7 @@ function Get-ModReadme {
 if (-not $SkipBuild) {
     $msbuild = Find-MSBuild
     Write-Host "Building Release..."
-    & $msbuild "src\KerbalismSystemHeatSupport.sln" /p:Configuration=Release /v:minimal
+    & $msbuild "src\KerbalismBridge.sln" /p:Configuration=Release /v:minimal
     if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with exit code $LASTEXITCODE" }
 }
 
@@ -154,7 +169,7 @@ if (Test-Path $outPath) {
 }
 New-Item -ItemType Directory -Path $outPath | Out-Null
 
-$stagingRoot = Join-Path $env:TEMP "KerbalismSystemHeatSupport-pack-$VersionTag"
+$stagingRoot = Join-Path $env:TEMP "KerbalismBridge-pack-$VersionTag"
 if (Test-Path $stagingRoot) {
     Remove-Item -LiteralPath $stagingRoot -Recurse -Force
 }
@@ -171,20 +186,13 @@ foreach ($mod in $Mods) {
 
     Copy-Item -LiteralPath $gd -Destination (Join-Path $stage "GameData\$($mod.Id)") -Recurse
 
-    if ($mod.ExtrasDir) {
-        $extras = Join-Path $RepoRoot $mod.ExtrasDir
-        if (Test-Path $extras) {
-            New-Item -ItemType Directory -Path (Join-Path $stage "Extras") -Force | Out-Null
-            Copy-Item -LiteralPath $extras -Destination (Join-Path $stage "Extras\$($mod.Id)") -Recurse
-        }
-    }
-
     Copy-Item -LiteralPath (Join-Path $RepoRoot "LICENSE") -Destination (Join-Path $stage "LICENSE")
 
     $readme = Get-ModReadme -SourcePath (Join-Path $RepoRoot $mod.ReadmeSource)
     Set-Content -LiteralPath (Join-Path $stage "README.md") -Value $readme -NoNewline
 
-    $changelog = Get-ModChangelog -ModId $mod.Id -SourcePath (Join-Path $RepoRoot "CHANGELOG.md")
+    $changelogModId = if ($mod.ChangelogId) { $mod.ChangelogId } else { $mod.Id }
+    $changelog = Get-ModChangelog -ModId $changelogModId -SourcePath (Join-Path $RepoRoot "CHANGELOG.md")
     Set-Content -LiteralPath (Join-Path $stage "CHANGELOG.md") -Value $changelog -NoNewline
 
     $zipName = "$($mod.ReleaseName).$VersionLabel.zip"

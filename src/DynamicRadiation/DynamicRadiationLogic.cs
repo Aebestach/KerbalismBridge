@@ -100,6 +100,49 @@ namespace KerbalismDynamicRadiation
 			Lib.Proto.Set(emitterSnapshot, "running", target > minRadiation * 1.001);
 		}
 
+		public static double ResolvePeakRadiation(Part part, Emitter emitter, double minEmissionPercent, double persistedPeak)
+		{
+			if (persistedPeak > 0.0)
+				return persistedPeak;
+
+			double prefabPeak = FindPeakEmitterRadiation(part.partInfo?.partPrefab);
+			if (prefabPeak > 0.0)
+				return prefabPeak;
+
+			if (emitter != null && emitter.radiation > 0.0)
+			{
+				if (minEmissionPercent > 0.0 && minEmissionPercent < 100.0)
+				{
+					double inferred = emitter.radiation * 100.0 / minEmissionPercent;
+					if (inferred > emitter.radiation * 1.01)
+						return inferred;
+				}
+
+				return emitter.radiation;
+			}
+
+			return 0.0;
+		}
+
+		static double FindPeakEmitterRadiation(Part prefab)
+		{
+			if (prefab == null)
+				return 0.0;
+
+			double best = 0.0;
+			for (int i = 0; i < prefab.Modules.Count; i++)
+			{
+				Emitter e = prefab.Modules[i] as Emitter;
+				if (e == null || e.radiation <= 0.0)
+					continue;
+
+				if (e.radiation > best)
+					best = e.radiation;
+			}
+
+			return best;
+		}
+
 		public static Emitter FindPrimaryEmitter(Part part, ref int emitterIndex)
 		{
 			Emitter best = null;
@@ -172,14 +215,70 @@ namespace KerbalismDynamicRadiation
 
 		public static bool GetPowerEnabled(Part part, string powerModuleName, string powerModuleId, string powerActiveMode)
 		{
+			if (powerActiveMode == "any_running")
+				return AnyPowerModuleRunning(part, powerModuleName, powerModuleId);
+
 			PartModule match = FindPowerModule(part, powerModuleName, powerModuleId);
 			return IsPowerActive(match, powerActiveMode);
 		}
 
 		public static bool GetPowerEnabledProto(ProtoPartSnapshot protoPart, string powerModuleName, string powerModuleId, string powerActiveMode)
 		{
+			if (powerActiveMode == "any_running")
+				return AnyPowerModuleRunningProto(protoPart, powerModuleName, powerModuleId);
+
 			ProtoPartModuleSnapshot match = FindPowerModuleProto(protoPart, powerModuleName, powerModuleId);
 			return IsPowerActiveProto(match, powerActiveMode);
+		}
+
+		static bool AnyPowerModuleRunning(Part part, string powerModuleName, string powerModuleId)
+		{
+			if (part == null || string.IsNullOrEmpty(powerModuleName))
+				return false;
+
+			for (int i = 0; i < part.Modules.Count; i++)
+			{
+				PartModule pm = part.Modules[i];
+				if (!ModuleNameMatches(pm.moduleName, powerModuleName))
+					continue;
+
+				if (!string.IsNullOrEmpty(powerModuleId) && GetModuleId(pm) != powerModuleId)
+					continue;
+
+				if (IsPowerActive(pm, "running"))
+					return true;
+			}
+
+			return false;
+		}
+
+		static bool AnyPowerModuleRunningProto(ProtoPartSnapshot protoPart, string powerModuleName, string powerModuleId)
+		{
+			if (protoPart == null || string.IsNullOrEmpty(powerModuleName))
+				return false;
+
+			for (int i = 0; i < protoPart.modules.Count; i++)
+			{
+				ProtoPartModuleSnapshot pm = protoPart.modules[i];
+				if (!ModuleNameMatches(pm.moduleName, powerModuleName))
+					continue;
+
+				if (!string.IsNullOrEmpty(powerModuleId))
+				{
+					string id = Lib.Proto.GetString(pm, "moduleID");
+					if (string.IsNullOrEmpty(id))
+						id = Lib.Proto.GetString(pm, "ModuleID");
+					if (string.IsNullOrEmpty(id))
+						id = Lib.Proto.GetString(pm, "resource");
+					if (id != powerModuleId)
+						continue;
+				}
+
+				if (Lib.Proto.GetBool(pm, "running"))
+					return true;
+			}
+
+			return false;
 		}
 
 		static PartModule FindPowerModule(Part part, string powerModuleName, string powerModuleId)
@@ -241,6 +340,8 @@ namespace KerbalismDynamicRadiation
 				string id = Lib.Proto.GetString(pm, "moduleID");
 				if (string.IsNullOrEmpty(id))
 					id = Lib.Proto.GetString(pm, "ModuleID");
+				if (string.IsNullOrEmpty(id))
+					id = Lib.Proto.GetString(pm, "resource");
 				if (id == powerModuleId)
 				{
 					match = pm;
@@ -271,6 +372,12 @@ namespace KerbalismDynamicRadiation
 			if (powerActiveMode == "thrust")
 				return IsEngineThrusting(pm);
 
+			if (powerActiveMode == "running")
+				return ReadBoolField(pm, "running");
+
+			if (powerActiveMode == "converter")
+				return IsResourceConverterActive(pm);
+
 			return GetEnabled(pm);
 		}
 
@@ -284,6 +391,16 @@ namespace KerbalismDynamicRadiation
 				float throttle = Lib.Proto.GetFloat(pm, "throttle");
 				bool flameout = Lib.Proto.GetBool(pm, "flameout");
 				return throttle > 0.01f && !flameout;
+			}
+
+			if (powerActiveMode == "running")
+				return Lib.Proto.GetBool(pm, "running");
+
+			if (powerActiveMode == "converter")
+			{
+				if (Lib.Proto.GetBool(pm, "DisabledByEngineer"))
+					return false;
+				return Lib.Proto.GetBool(pm, "IsEnabled") || Lib.Proto.GetBool(pm, "Enabled");
 			}
 
 			return Lib.Proto.GetBool(pm, "Enabled");
@@ -304,6 +421,24 @@ namespace KerbalismDynamicRadiation
 
 			float thrust = ReadFloatField(pm, "currentThrust");
 			return thrust > 0.01f;
+		}
+
+		static bool IsResourceConverterActive(PartModule pm)
+		{
+			if (pm == null)
+				return false;
+
+			if (ReadBoolField(pm, "DisabledByEngineer"))
+				return false;
+
+			var method = pm.GetType().GetMethod("IsActivated");
+			if (method != null && method.ReturnType == typeof(bool) && method.GetParameters().Length == 0)
+				return (bool)method.Invoke(pm, null);
+
+			if (ReadBoolField(pm, "IsEnabled"))
+				return true;
+
+			return GetEnabled(pm);
 		}
 
 		static bool ReadBoolField(PartModule pm, string name)
@@ -333,7 +468,11 @@ namespace KerbalismDynamicRadiation
 			if (!string.IsNullOrEmpty(id))
 				return id;
 
-			return ReadStringField(pm, "ModuleID");
+			id = ReadStringField(pm, "ModuleID");
+			if (!string.IsNullOrEmpty(id))
+				return id;
+
+			return ReadStringField(pm, "resource");
 		}
 
 		static string ReadStringField(PartModule pm, string name)
@@ -350,13 +489,13 @@ namespace KerbalismDynamicRadiation
 			if (pm == null)
 				return false;
 
-			var prop = pm.GetType().GetProperty("Enabled");
-			if (prop != null && prop.PropertyType == typeof(bool) && prop.CanRead)
-				return (bool)prop.GetValue(pm, null);
-
 			var field = pm.GetType().GetField("Enabled");
 			if (field != null && field.FieldType == typeof(bool))
 				return (bool)field.GetValue(pm);
+
+			var prop = pm.GetType().GetProperty("Enabled");
+			if (prop != null && prop.PropertyType == typeof(bool) && prop.CanRead)
+				return (bool)prop.GetValue(pm, null);
 
 			return false;
 		}

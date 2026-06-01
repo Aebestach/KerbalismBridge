@@ -23,8 +23,8 @@ SOFTWARE.
 
 ---
 
-Scope: this repository contains zKerbalismSystemHeat, zKerbalismFFT,
-zKerbalismNFE, and zKerbalismDynamicRadiation. SystemHeat and FFT continue
+Scope: this repository contains zKerbalismBridge, zKerbalismProcess, zKerbalismNative,
+zKerbalismFFT, and zKerbalismDynamicRadiation. SystemHeat and FFT continue
 from judicator forks (Alexander Rogov, 2022). NFE and DynamicRadiation are
 Aebestach originals (2026). See docs/legal/ATTRIBUTION.md.
 

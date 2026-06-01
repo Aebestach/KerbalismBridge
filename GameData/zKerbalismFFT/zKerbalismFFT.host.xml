@@ -8,4 +8,5 @@
                     warnMessageLoc="#LOC_KerbalismFFT_KerbalismNotFound_Msg"
                     quitButtonLoc="#LOC_KerbalismFFT_Quit" />
   <RequireAssembly name="FarFutureTechnologies" />
+  <RequireAssembly name="zKerbalismBridge" />
 </KerbalismHostedPlugin>
