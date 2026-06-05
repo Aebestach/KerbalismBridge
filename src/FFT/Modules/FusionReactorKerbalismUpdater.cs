@@ -1,6 +1,5 @@
 ﻿using KSP.Localization;
 using System.Collections.Generic;
-using System.Linq;
 using FarFutureTechnologies;
 using KERBALISM;
 using SystemHeat;
@@ -223,17 +222,30 @@ namespace KerbalismFFT
 		// Find associated Reactor module
 		public FusionReactor FindReactorModule(Part part, string moduleName)
 		{
-			FusionReactor reactor = part.GetComponents<FusionReactor>().ToList().Find(x => x.ModuleID == moduleName);
-
-			if (reactor == null)
+			FusionReactor firstReactor = null;
+			for (int i = 0; i < part.Modules.Count; i++)
 			{
-				KFFTUtils.LogError($"[{part}] No FusionReactor named {moduleName} was found, using first instance.");
-				reactor = part.GetComponents<FusionReactor>().ToList().FirstOrDefault();
+				FusionReactor reactor = part.Modules[i] as FusionReactor;
+				if (reactor == null)
+					continue;
+
+				if (firstReactor == null)
+					firstReactor = reactor;
+
+				if (reactor.ModuleID == moduleName)
+				{
+					reactorModule = reactor;
+					return reactor;
+				}
 			}
-			if (reactor == null)
+
+			if (firstReactor != null)
+				KFFTUtils.LogError($"[{part}] No FusionReactor named {moduleName} was found, using first instance.");
+			else
 				KFFTUtils.LogError($"[{part}] No FusionReactor was found.");
-			reactorModule = reactor;
-			return reactor;
+
+			reactorModule = firstReactor;
+			return firstReactor;
 		}
 	}
 }

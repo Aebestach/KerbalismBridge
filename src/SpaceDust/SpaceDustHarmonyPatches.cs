@@ -3,6 +3,7 @@ using System.Reflection;
 using HarmonyLib;
 using KERBALISM;
 using KerbalismBridge;
+using SpaceDust;
 
 namespace KerbalismSpaceDust
 {
@@ -15,14 +16,7 @@ namespace KerbalismSpaceDust
 			if (patchesApplied)
 				return;
 
-			Type spaceDustHarvester = AccessTools.TypeByName("SpaceDust.ModuleSpaceDustHarvester");
-			if (spaceDustHarvester == null)
-			{
-				BridgeUtils.Log("SpaceDust not loaded; skipping ModuleSpaceDustHarvester patches.");
-				return;
-			}
-
-			MethodInfo fixedUpdate = AccessTools.Method(spaceDustHarvester, "FixedUpdate");
+			MethodInfo fixedUpdate = typeof(ModuleSpaceDustHarvester).GetMethod("FixedUpdate", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			if (fixedUpdate == null)
 				return;
 
@@ -32,10 +26,9 @@ namespace KerbalismSpaceDust
 				prefix: new HarmonyMethod(typeof(SpaceDustHarmonyPatches), nameof(SpaceDustFixedUpdatePrefix)),
 				postfix: new HarmonyMethod(typeof(SpaceDustHarmonyPatches), nameof(SpaceDustFixedUpdatePostfix)));
 
-			Type backgroundHarvester = AccessTools.TypeByName("SpaceDust.SpaceDustHarvesterBackground");
-			MethodInfo backgroundProcess = backgroundHarvester != null
-				? AccessTools.Method(backgroundHarvester, "Process")
-				: null;
+			MethodInfo backgroundProcess = typeof(SpaceDustHarvesterBackground).GetMethod(
+				nameof(SpaceDustHarvesterBackground.Process),
+				BindingFlags.Instance | BindingFlags.Public);
 			if (backgroundProcess != null)
 			{
 				harmony.Patch(
@@ -59,12 +52,10 @@ namespace KerbalismSpaceDust
 				SpaceDustResourceBlocker.ExitBlock();
 		}
 
-		private static bool SpaceDustBackgroundProcessPrefix(object __instance)
+		private static bool SpaceDustBackgroundProcessPrefix(ProtoPartModuleSnapshot ___protoMiner, Vessel ___ves)
 		{
-			ProtoPartModuleSnapshot harvester = AccessTools.Field(__instance.GetType(), "protoMiner")
-				?.GetValue(__instance) as ProtoPartModuleSnapshot;
-			Vessel vessel = AccessTools.Field(__instance.GetType(), "ves")
-				?.GetValue(__instance) as Vessel;
+			ProtoPartModuleSnapshot harvester = ___protoMiner;
+			Vessel vessel = ___ves;
 
 			if (harvester == null || vessel?.protoVessel == null)
 				return true;

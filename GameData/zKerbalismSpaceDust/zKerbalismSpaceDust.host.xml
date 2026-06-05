@@ -9,5 +9,5 @@
                     quitButtonLoc="#LOC_KerbalismSpaceDust_Quit" />
   <RequireAssembly name="zKerbalismBridge" />
   <RequireAssembly name="zKerbalismNative" />
-  <RequireAssembly name="SpaceDust" optional="true" />
+  <RequireAssembly name="SpaceDust" />
 </KerbalismHostedPlugin>

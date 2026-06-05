@@ -1,6 +1,5 @@
 ﻿using KSP.Localization;
 using System.Collections.Generic;
-using System.Linq;
 using FarFutureTechnologies;
 using KERBALISM;
 using SystemHeat;
@@ -205,17 +204,30 @@ namespace KerbalismFFT
 
 		public ModuleFusionEngine FindEngineModule(Part part, string moduleName)
 		{
-			ModuleFusionEngine engine = part.GetComponents<ModuleFusionEngine>().ToList().Find(x => x.ModuleID == moduleName);
-
-			if (engine == null)
+			ModuleFusionEngine firstEngine = null;
+			for (int i = 0; i < part.Modules.Count; i++)
 			{
-				KFFTUtils.LogError($"[{part}] No ModuleFusionEngine named {moduleName} was found, using first instance.");
-				engine = part.GetComponents<ModuleFusionEngine>().ToList().FirstOrDefault();
+				ModuleFusionEngine engine = part.Modules[i] as ModuleFusionEngine;
+				if (engine == null)
+					continue;
+
+				if (firstEngine == null)
+					firstEngine = engine;
+
+				if (engine.ModuleID == moduleName)
+				{
+					engineModule = engine;
+					return engine;
+				}
 			}
-			if (engine == null)
+
+			if (firstEngine != null)
+				KFFTUtils.LogError($"[{part}] No ModuleFusionEngine named {moduleName} was found, using first instance.");
+			else
 				KFFTUtils.LogError($"[{part}] No ModuleFusionEngine was found.");
-			engineModule = engine;
-			return engine;
+
+			engineModule = firstEngine;
+			return firstEngine;
 		}
 	}
 }

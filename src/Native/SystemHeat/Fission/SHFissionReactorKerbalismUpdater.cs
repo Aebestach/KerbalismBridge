@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using KSP.Localization;
 using KERBALISM;
 using SystemHeat;
@@ -239,16 +238,26 @@ namespace KerbalismNative
 
 		public ModuleSystemHeatFissionReactor FindReactorModule(Part part, string moduleName)
 		{
-			ModuleSystemHeatFissionReactor reactor = part.GetComponents<ModuleSystemHeatFissionReactor>().ToList().Find(x => x.moduleID == moduleName);
-
-			if (reactor == null)
+			ModuleSystemHeatFissionReactor firstReactor = null;
+			for (int i = 0; i < part.Modules.Count; i++)
 			{
-				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionReactor named {moduleName} was found, using first instance.");
-				reactor = part.GetComponents<ModuleSystemHeatFissionReactor>().ToList().FirstOrDefault();
+				ModuleSystemHeatFissionReactor reactor = part.Modules[i] as ModuleSystemHeatFissionReactor;
+				if (reactor == null)
+					continue;
+
+				if (firstReactor == null)
+					firstReactor = reactor;
+
+				if (reactor.moduleID == moduleName)
+					return reactor;
 			}
-			if (reactor == null)
+
+			if (firstReactor != null)
+				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionReactor named {moduleName} was found, using first instance.");
+			else
 				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionReactor was found.");
-			return reactor;
+
+			return firstReactor;
 		}
 	}
 }

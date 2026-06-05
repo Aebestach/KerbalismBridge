@@ -1,12 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using HarmonyLib;
 using KSP.Localization;
 using KERBALISM;
 using UnityEngine;
 using KerbalismBridge;
+using SpaceDust;
 
 namespace KerbalismSpaceDust
 {
@@ -21,24 +19,17 @@ namespace KerbalismSpaceDust
 		[KSPField(isPersistant = true)]
 		public string harvesterModuleID = "harvester";
 
-		private PartModule nativeHarvester;
+		private ModuleSpaceDustHarvester nativeHarvester;
 		private bool nativeResolved;
 
-		private PartModule NativeHarvester
+		private ModuleSpaceDustHarvester NativeHarvester
 		{
 			get
 			{
 				if (!nativeResolved)
 				{
 					nativeResolved = true;
-					foreach (PartModule module in part.Modules)
-					{
-						if (module.moduleName == "ModuleSpaceDustHarvester")
-						{
-							nativeHarvester = module;
-							break;
-						}
-					}
+					nativeHarvester = part.FindModuleImplementing<ModuleSpaceDustHarvester>();
 				}
 
 				return nativeHarvester;
@@ -47,17 +38,19 @@ namespace KerbalismSpaceDust
 
 		private bool IsEnabled()
 		{
-			return BridgeModuleFields.GetBool(NativeHarvester, "Enabled");
+			ModuleSpaceDustHarvester harvester = NativeHarvester;
+			return harvester != null && harvester.Enabled;
 		}
 
 		private float GetPowerCost()
 		{
-			return BridgeModuleFields.GetFloat(NativeHarvester, "PowerCost");
+			ModuleSpaceDustHarvester harvester = NativeHarvester;
+			return harvester != null ? harvester.PowerCost : 0f;
 		}
 
 		private double GetThermalScale()
 		{
-			PartModule harvester = NativeHarvester;
+			ModuleSpaceDustHarvester harvester = NativeHarvester;
 			if (harvester == null)
 				return 1d;
 
@@ -65,19 +58,17 @@ namespace KerbalismSpaceDust
 			if (heatModule == null)
 				return 1d;
 
-			FloatCurve curve = BridgeModuleFields.GetField(harvester, "SystemEfficiency", new FloatCurve());
 			float loopTemp = BridgeModuleFields.GetFloat(heatModule, "currentLoopTemperature");
-			return curve.Evaluate(loopTemp);
+			return harvester.SystemEfficiency.Evaluate(loopTemp);
 		}
 
-		private PartModule FindLinkedHeatModule(PartModule harvester)
+		private PartModule FindLinkedHeatModule(ModuleSpaceDustHarvester harvester)
 		{
-			string heatId = BridgeModuleFields.GetString(harvester, "HeatModuleID");
 			foreach (PartModule module in part.Modules)
 			{
 				if (module.moduleName != "ModuleSystemHeat")
 					continue;
-				if (BridgeModuleFields.GetString(module, "moduleID") == heatId)
+				if (BridgeModuleFields.GetString(module, "moduleID") == harvester.HeatModuleID)
 					return module;
 			}
 
@@ -113,69 +104,54 @@ namespace KerbalismSpaceDust
 
 		private void AddHarvestRates(List<KeyValuePair<string, double>> resourceChangeRequest, double scale)
 		{
-			PartModule harvester = NativeHarvester;
+			ModuleSpaceDustHarvester harvester = NativeHarvester;
 			if (harvester == null || vessel == null)
 				return;
 
-			IList resources = BridgeModuleFields.GetField<IList>(harvester, "resources", null);
+			List<HarvestedResource> resources = harvester.resources;
 			if (resources == null || resources.Count == 0)
 				return;
 
-			int harvestType = GetHarvestType(harvester);
-			double intakeVolume = ComputeIntakeVolume(harvester, harvestType);
+			double intakeVolume = ComputeIntakeVolume(harvester);
 			if (intakeVolume <= double.Epsilon)
 				return;
 
 			double altitude = vessel.altitude + vessel.mainBody.Radius;
-			foreach (object resObj in resources)
+			foreach (HarvestedResource res in resources)
 			{
-				if (resObj == null)
+				if (res == null)
 					continue;
 
-				string name = GetResourceField(resObj, "Name");
+				string name = res.Name;
 				if (string.IsNullOrEmpty(name))
 					continue;
 
-				float baseEfficiency = GetResourceField(resObj, "BaseEfficiency", 0f);
-				double minHarvest = GetResourceField(resObj, "MinHarvestValue", 0d);
-				double density = GetResourceField(resObj, "density", 0.05d);
+				double density = res.density;
 				if (density <= double.Epsilon)
 					density = 0.05d;
 
 				double sample = SampleSpaceDustResource(name, vessel.mainBody, altitude, vessel.latitude, vessel.longitude);
-				double rate = sample * intakeVolume * baseEfficiency * scale / density;
-				if (rate <= minHarvest)
+				double rate = sample * intakeVolume * res.BaseEfficiency * scale / density;
+				if (rate <= res.MinHarvestValue)
 					continue;
 
 				resourceChangeRequest.Add(new KeyValuePair<string, double>(name, rate));
 			}
 		}
 
-		private static int GetHarvestType(PartModule harvester)
-		{
-			FieldInfo field = harvester.GetType().GetField("HarvestType", BindingFlags.Instance | BindingFlags.Public);
-			if (field == null)
-				return 0;
-
-			object value = field.GetValue(harvester);
-			return value != null ? (int)value : 0;
-		}
-
-		private static double ComputeIntakeVolume(PartModule harvester, int harvestType)
+		private static double ComputeIntakeVolume(ModuleSpaceDustHarvester harvester)
 		{
 			Vessel vessel = harvester.vessel;
 			if (vessel == null)
 				return 0d;
 
-			float intakeArea = BridgeModuleFields.GetFloat(harvester, "IntakeArea");
-			float intakeSpeedStatic = BridgeModuleFields.GetFloat(harvester, "IntakeSpeedStatic");
-			FloatCurve intakeVelocityScale = BridgeModuleFields.GetField(harvester, "IntakeVelocityScale", new FloatCurve());
-			Transform intakeTransform = BridgeModuleFields.GetField<Transform>(harvester, "HarvestIntakeTransform", null);
+			Transform intakeTransform = null;
+			if (!string.IsNullOrEmpty(harvester.HarvestIntakeTransformName))
+				intakeTransform = harvester.part.FindModelTransform(harvester.HarvestIntakeTransformName);
 			if (intakeTransform == null)
 				intakeTransform = harvester.part.transform;
 
-			// Atmosphere = 0, Exosphere = 1, Omni = 2
-			if (harvestType == 0)
+			if (harvester.HarvestType == HarvestType.Atmosphere)
 			{
 				if (vessel.atmDensity <= 0d)
 					return 0d;
@@ -183,57 +159,29 @@ namespace KerbalismSpaceDust
 				Vector3d worldVelocity = vessel.srf_velocity;
 				double mach = vessel.mach;
 				double dot = Vector3d.Dot(worldVelocity, intakeTransform.forward);
-				return (worldVelocity.magnitude * Math.Max(dot, 0d) * intakeVelocityScale.Evaluate((float)mach) + intakeSpeedStatic) * intakeArea;
+				return (worldVelocity.magnitude * Math.Max(dot, 0d) * harvester.IntakeVelocityScale.Evaluate((float)mach) + harvester.IntakeSpeedStatic) * harvester.IntakeArea;
 			}
 
-			if (harvestType == 1)
+			if (harvester.HarvestType == HarvestType.Exosphere)
 			{
 				if (vessel.atmDensity > 0d)
 					return 0d;
 
 				Vector3d worldVelocity = vessel.obt_velocity;
 				double dot = Vector3d.Dot(worldVelocity.normalized, intakeTransform.forward.normalized);
-				return (worldVelocity.magnitude * Math.Max(dot, 0d) + intakeSpeedStatic) * intakeArea;
+				return (worldVelocity.magnitude * Math.Max(dot, 0d) + harvester.IntakeSpeedStatic) * harvester.IntakeArea;
 			}
 
-			return intakeSpeedStatic * intakeArea;
+			return harvester.IntakeSpeedStatic * harvester.IntakeArea;
 		}
 
 		private static double SampleSpaceDustResource(string resourceName, CelestialBody body, double altitude, double latitude, double longitude)
 		{
-			Type mapType = AccessTools.TypeByName("SpaceDust.SpaceDustResourceMap");
-			if (mapType == null)
-				return 0d;
-
-			PropertyInfo instanceProp = mapType.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public);
-			object map = instanceProp?.GetValue(null, null);
+			SpaceDustResourceMap map = SpaceDustResourceMap.Instance;
 			if (map == null)
 				return 0d;
 
-			MethodInfo sample = mapType.GetMethod("SampleResource", BindingFlags.Instance | BindingFlags.Public);
-			if (sample == null)
-				return 0d;
-
-			object result = sample.Invoke(map, new object[] { resourceName, body, altitude, latitude, longitude });
-			return result is double d ? d : 0d;
-		}
-
-		private static string GetResourceField(object resObj, string fieldName)
-		{
-			FieldInfo field = resObj.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public);
-			return field?.GetValue(resObj) as string ?? string.Empty;
-		}
-
-		private static float GetResourceField(object resObj, string fieldName, float fallback)
-		{
-			FieldInfo field = resObj.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public);
-			return field != null ? (float)field.GetValue(resObj) : fallback;
-		}
-
-		private static double GetResourceField(object resObj, string fieldName, double fallback)
-		{
-			FieldInfo field = resObj.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public);
-			return field != null ? (double)field.GetValue(resObj) : fallback;
+			return map.SampleResource(resourceName, body, altitude, latitude, longitude);
 		}
 
 		public static string BackgroundUpdate(

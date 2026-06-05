@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using KERBALISM;
 
 namespace KerbalismDynamicRadiation
@@ -9,6 +10,15 @@ namespace KerbalismDynamicRadiation
 	/// </summary>
 	static class DynamicRadiationLogic
 	{
+		private const BindingFlags PublicInstanceMembers = BindingFlags.Instance | BindingFlags.Public;
+		private static readonly object ReflectionCacheLock = new object();
+		private static readonly Dictionary<Type, Dictionary<string, FieldInfo>> FieldCache =
+			new Dictionary<Type, Dictionary<string, FieldInfo>>();
+		private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> PropertyCache =
+			new Dictionary<Type, Dictionary<string, PropertyInfo>>();
+		private static readonly Dictionary<Type, Dictionary<string, MethodInfo>> MethodCache =
+			new Dictionary<Type, Dictionary<string, MethodInfo>>();
+
 		public static void UpdateFlight(
 			Emitter emitter,
 			bool powerEnabled,
@@ -431,7 +441,7 @@ namespace KerbalismDynamicRadiation
 			if (ReadBoolField(pm, "DisabledByEngineer"))
 				return false;
 
-			var method = pm.GetType().GetMethod("IsActivated");
+			MethodInfo method = GetCachedMethod(pm.GetType(), "IsActivated");
 			if (method != null && method.ReturnType == typeof(bool) && method.GetParameters().Length == 0)
 				return (bool)method.Invoke(pm, null);
 
@@ -443,7 +453,7 @@ namespace KerbalismDynamicRadiation
 
 		static bool ReadBoolField(PartModule pm, string name)
 		{
-			var field = pm.GetType().GetField(name);
+			FieldInfo field = GetCachedField(pm.GetType(), name);
 			if (field != null && field.FieldType == typeof(bool))
 				return (bool)field.GetValue(pm);
 
@@ -452,7 +462,7 @@ namespace KerbalismDynamicRadiation
 
 		static float ReadFloatField(PartModule pm, string name)
 		{
-			var field = pm.GetType().GetField(name);
+			FieldInfo field = GetCachedField(pm.GetType(), name);
 			if (field != null && field.FieldType == typeof(float))
 				return (float)field.GetValue(pm);
 
@@ -477,7 +487,7 @@ namespace KerbalismDynamicRadiation
 
 		static string ReadStringField(PartModule pm, string name)
 		{
-			var field = pm.GetType().GetField(name);
+			FieldInfo field = GetCachedField(pm.GetType(), name);
 			if (field != null && field.FieldType == typeof(string))
 				return (string)field.GetValue(pm) ?? string.Empty;
 
@@ -489,15 +499,81 @@ namespace KerbalismDynamicRadiation
 			if (pm == null)
 				return false;
 
-			var field = pm.GetType().GetField("Enabled");
+			FieldInfo field = GetCachedField(pm.GetType(), "Enabled");
 			if (field != null && field.FieldType == typeof(bool))
 				return (bool)field.GetValue(pm);
 
-			var prop = pm.GetType().GetProperty("Enabled");
+			PropertyInfo prop = GetCachedProperty(pm.GetType(), "Enabled");
 			if (prop != null && prop.PropertyType == typeof(bool) && prop.CanRead)
 				return (bool)prop.GetValue(pm, null);
 
 			return false;
+		}
+
+		static FieldInfo GetCachedField(Type type, string name)
+		{
+			Dictionary<string, FieldInfo> fields;
+			lock (ReflectionCacheLock)
+			{
+				if (!FieldCache.TryGetValue(type, out fields))
+				{
+					fields = new Dictionary<string, FieldInfo>();
+					FieldCache[type] = fields;
+				}
+
+				FieldInfo field;
+				if (!fields.TryGetValue(name, out field))
+				{
+					field = type.GetField(name, PublicInstanceMembers);
+					fields[name] = field;
+				}
+
+				return field;
+			}
+		}
+
+		static PropertyInfo GetCachedProperty(Type type, string name)
+		{
+			Dictionary<string, PropertyInfo> properties;
+			lock (ReflectionCacheLock)
+			{
+				if (!PropertyCache.TryGetValue(type, out properties))
+				{
+					properties = new Dictionary<string, PropertyInfo>();
+					PropertyCache[type] = properties;
+				}
+
+				PropertyInfo property;
+				if (!properties.TryGetValue(name, out property))
+				{
+					property = type.GetProperty(name, PublicInstanceMembers);
+					properties[name] = property;
+				}
+
+				return property;
+			}
+		}
+
+		static MethodInfo GetCachedMethod(Type type, string name)
+		{
+			Dictionary<string, MethodInfo> methods;
+			lock (ReflectionCacheLock)
+			{
+				if (!MethodCache.TryGetValue(type, out methods))
+				{
+					methods = new Dictionary<string, MethodInfo>();
+					MethodCache[type] = methods;
+				}
+
+				MethodInfo method;
+				if (!methods.TryGetValue(name, out method))
+				{
+					method = type.GetMethod(name, PublicInstanceMembers);
+					methods[name] = method;
+				}
+
+				return method;
+			}
 		}
 	}
 }

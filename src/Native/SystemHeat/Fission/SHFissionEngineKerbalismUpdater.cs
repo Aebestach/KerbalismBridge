@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using KSP.Localization;
 using KERBALISM;
 using SystemHeat;
@@ -243,17 +242,30 @@ namespace KerbalismNative
 
 		public ModuleSystemHeatFissionEngine FindEngineModule(Part part, string moduleName)
 		{
-			ModuleSystemHeatFissionEngine engine = part.GetComponents<ModuleSystemHeatFissionEngine>().ToList().Find(x => x.moduleID == moduleName);
-
-			if (engine == null)
+			ModuleSystemHeatFissionEngine firstEngine = null;
+			for (int i = 0; i < part.Modules.Count; i++)
 			{
-				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionEngine named {moduleName} was found, using first instance");
-				engine = part.GetComponents<ModuleSystemHeatFissionEngine>().ToList().FirstOrDefault();
+				ModuleSystemHeatFissionEngine engine = part.Modules[i] as ModuleSystemHeatFissionEngine;
+				if (engine == null)
+					continue;
+
+				if (firstEngine == null)
+					firstEngine = engine;
+
+				if (engine.moduleID == moduleName)
+				{
+					engineModule = engine;
+					return engine;
+				}
 			}
-			if (engine == null)
+
+			if (firstEngine != null)
+				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionEngine named {moduleName} was found, using first instance");
+			else
 				BridgeUtils.LogError($"[{part}] No ModuleSystemHeatFissionEngine was found.");
-			engineModule = engine;
-			return engine;
+
+			engineModule = firstEngine;
+			return firstEngine;
 		}
 	}
 }

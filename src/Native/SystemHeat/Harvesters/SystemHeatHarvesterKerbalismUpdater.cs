@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using KSP.Localization;
 using KERBALISM;
 using SystemHeat;
@@ -32,12 +31,7 @@ namespace KerbalismNative
 			if (harvesterModule != null)
 				return harvesterModule;
 
-			harvesterModule = part.GetComponents<ModuleSystemHeatHarvester>()
-				.FirstOrDefault(x => x.moduleID == harvesterModuleID);
-
-			if (harvesterModule == null)
-				harvesterModule = part.GetComponents<ModuleSystemHeatHarvester>().FirstOrDefault();
-
+			harvesterModule = FindHarvesterPrefab(part, harvesterModuleID);
 			return harvesterModule;
 		}
 
@@ -68,28 +62,8 @@ namespace KerbalismNative
 			double elapsed_s)
 		{
 			string moduleId = Lib.Proto.GetString(module_snapshot, "harvesterModuleID");
-			ProtoPartModuleSnapshot harvesterSnapshot = null;
-			ModuleSystemHeatHarvester harvesterPrefab = null;
-
-			foreach (ProtoPartModuleSnapshot module in part_snapshot.modules)
-			{
-				if (module.moduleName != "ModuleSystemHeatHarvester")
-					continue;
-
-				ModuleSystemHeatHarvester prefab = proto_part.FindModuleImplementing<ModuleSystemHeatHarvester>();
-				if (prefab != null && prefab.moduleID == moduleId)
-				{
-					harvesterSnapshot = module;
-					harvesterPrefab = prefab;
-					break;
-				}
-			}
-
-			if (harvesterSnapshot == null)
-			{
-				harvesterSnapshot = BridgeUtils.TryFindPartModuleSnapshot(part_snapshot, "ModuleSystemHeatHarvester");
-				harvesterPrefab = proto_part.FindModuleImplementing<ModuleSystemHeatHarvester>();
-			}
+			ProtoPartModuleSnapshot harvesterSnapshot = FindHarvesterSnapshot(part_snapshot, moduleId);
+			ModuleSystemHeatHarvester harvesterPrefab = FindHarvesterPrefab(proto_part, moduleId);
 
 			if (harvesterSnapshot != null && harvesterPrefab != null)
 			{
@@ -104,6 +78,44 @@ namespace KerbalismNative
 
 			SystemHeatBackgroundThermal.TryRun(v, elapsed_s);
 			return brokerTitle;
+		}
+
+		private static ModuleSystemHeatHarvester FindHarvesterPrefab(Part part, string moduleId)
+		{
+			ModuleSystemHeatHarvester firstHarvester = null;
+			for (int i = 0; i < part.Modules.Count; i++)
+			{
+				ModuleSystemHeatHarvester harvester = part.Modules[i] as ModuleSystemHeatHarvester;
+				if (harvester == null)
+					continue;
+
+				if (firstHarvester == null)
+					firstHarvester = harvester;
+
+				if (harvester.moduleID == moduleId)
+					return harvester;
+			}
+
+			return firstHarvester;
+		}
+
+		private static ProtoPartModuleSnapshot FindHarvesterSnapshot(ProtoPartSnapshot partSnapshot, string moduleId)
+		{
+			ProtoPartModuleSnapshot firstHarvester = null;
+			for (int i = 0; i < partSnapshot.modules.Count; i++)
+			{
+				ProtoPartModuleSnapshot module = partSnapshot.modules[i];
+				if (module.moduleName != "ModuleSystemHeatHarvester")
+					continue;
+
+				if (firstHarvester == null)
+					firstHarvester = module;
+
+				if (Lib.Proto.GetString(module, "moduleID") == moduleId)
+					return module;
+			}
+
+			return firstHarvester;
 		}
 	}
 }

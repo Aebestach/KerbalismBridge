@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using KSP.Localization;
 using KERBALISM;
 using SystemHeat;
@@ -32,12 +31,7 @@ namespace KerbalismNative
 			if (converterModule != null)
 				return converterModule;
 
-			converterModule = part.GetComponents<ModuleSystemHeatConverter>()
-				.FirstOrDefault(x => x.moduleID == converterModuleID);
-
-			if (converterModule == null)
-				converterModule = part.GetComponents<ModuleSystemHeatConverter>().FirstOrDefault();
-
+			converterModule = FindConverterPrefab(part, converterModuleID);
 			return converterModule;
 		}
 
@@ -67,30 +61,9 @@ namespace KerbalismNative
 			List<KeyValuePair<string, double>> resourceChangeRequest,
 			double elapsed_s)
 		{
-			var updater = proto_part_module as SystemHeatConverterKerbalismUpdater;
 			string moduleId = Lib.Proto.GetString(module_snapshot, "converterModuleID");
-			ProtoPartModuleSnapshot converterSnapshot = null;
-			ModuleSystemHeatConverter converterPrefab = null;
-
-			foreach (ProtoPartModuleSnapshot module in part_snapshot.modules)
-			{
-				if (module.moduleName != "ModuleSystemHeatConverter")
-					continue;
-
-				ModuleSystemHeatConverter prefab = proto_part.FindModuleImplementing<ModuleSystemHeatConverter>();
-				if (prefab != null && prefab.moduleID == moduleId)
-				{
-					converterSnapshot = module;
-					converterPrefab = prefab;
-					break;
-				}
-			}
-
-			if (converterSnapshot == null)
-			{
-				converterSnapshot = BridgeUtils.TryFindPartModuleSnapshot(part_snapshot, "ModuleSystemHeatConverter");
-				converterPrefab = proto_part.FindModuleImplementing<ModuleSystemHeatConverter>();
-			}
+			ProtoPartModuleSnapshot converterSnapshot = FindConverterSnapshot(part_snapshot, moduleId);
+			ModuleSystemHeatConverter converterPrefab = FindConverterPrefab(proto_part, moduleId);
 
 			if (converterSnapshot != null && converterPrefab != null)
 			{
@@ -105,6 +78,44 @@ namespace KerbalismNative
 
 			SystemHeatBackgroundThermal.TryRun(v, elapsed_s);
 			return brokerTitle;
+		}
+
+		private static ModuleSystemHeatConverter FindConverterPrefab(Part part, string moduleId)
+		{
+			ModuleSystemHeatConverter firstConverter = null;
+			for (int i = 0; i < part.Modules.Count; i++)
+			{
+				ModuleSystemHeatConverter converter = part.Modules[i] as ModuleSystemHeatConverter;
+				if (converter == null)
+					continue;
+
+				if (firstConverter == null)
+					firstConverter = converter;
+
+				if (converter.moduleID == moduleId)
+					return converter;
+			}
+
+			return firstConverter;
+		}
+
+		private static ProtoPartModuleSnapshot FindConverterSnapshot(ProtoPartSnapshot partSnapshot, string moduleId)
+		{
+			ProtoPartModuleSnapshot firstConverter = null;
+			for (int i = 0; i < partSnapshot.modules.Count; i++)
+			{
+				ProtoPartModuleSnapshot module = partSnapshot.modules[i];
+				if (module.moduleName != "ModuleSystemHeatConverter")
+					continue;
+
+				if (firstConverter == null)
+					firstConverter = module;
+
+				if (Lib.Proto.GetString(module, "moduleID") == moduleId)
+					return module;
+			}
+
+			return firstConverter;
 		}
 	}
 }
