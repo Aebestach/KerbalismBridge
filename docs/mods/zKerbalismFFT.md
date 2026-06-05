@@ -28,6 +28,14 @@ Community fork of [judicator/KerbalismFFT](https://github.com/judicator/Kerbalis
 
 Same Kerbalism routing and planner behaviour as standalone fusion reactors (`FFTFusionEngineKerbalismUpdater`). Trimodal engines that generate EC are covered.
 
+### FFT engines
+
+Plain FFT engines remain native `ModuleEnginesFX` parts. Their SystemHeat engine modules, static radiation emitters, dynamic radiation controllers, and reliability tuning are left in place, but engine propellants and thrust are not routed through Kerbalism.
+
+### Chargeable engines
+
+`ModuleChargeableEngine` startup capacitors are not Kerbalism-routed. The native FFT module keeps loaded-vessel charge state and engine gating; Kerbalism integration is limited to the surrounding engine radiation/reliability patches.
+
 ### Particle detector science experiment
 
 Converted to a Kerbalism science experiment (requires Kerbalism **FeatureScience**). Experiment duration is set to 2 Kerbin years.
@@ -42,7 +50,12 @@ Use **[zKerbalismCryo](zKerbalismCryo.md)** (separate package) for CryoTanks / S
 
 ### Industrial processors (with zKerbalismProcess)
 
-`fft-antimatter-factory-1` and `fft-nuclear-smelter-375-1` use Kerbalism `ProcessController` + `ProcessControllerSystemHeat` (`FFTIndustrialProfile.cfg`, `Patches/FFTIndustrialConverters.cfg`, and `ModsSupport/FarFutureTechnologies.cfg`). Resource flows go through Kerbalism; loop heat stays on SystemHeat.
+`fft-antimatter-factory-1` and `fft-nuclear-smelter-375-1` use Kerbalism `ProcessController` + `ProcessControllerSystemHeat` (`FFTIndustrialProfile.cfg`, `Patches/FFTIndustrialConverters.cfg`, and `ModsSupport/FarFutureTechnologies.cfg`). Resource flows go through Kerbalism; loop heat stays on SystemHeat. Like stock FFT and NFE's nuclear recycler, both converters on the antimatter factory (`slots = 2`) and all three on the nuclear smelter (`slots = 3`) can run at once via Configure.
+
+### Regolith scoops (with zKerbalismProcess)
+
+`fft-regolith-scoop-1` and `fft-regolith-scoop-2` use Kerbalism Layer A `HarvesterSystemHeat` modules (`Patches/FFT_Regoliths_SystemHeat.cfg`). They are SystemHeat harvesters rather than SpaceDust harvesters, so background resource simulation follows the normal Kerbalism harvester path.
+The original FFT `Efficiency` multiplier is folded into Kerbalism `rate` only (`scoop-1` = 300%, `scoop-2` = 150%); `ec_rate` matches the native `INPUT_RESOURCE` ratio.
 
 ### Kerbalism Automation (Planner ??Automation ??vessel devices)
 

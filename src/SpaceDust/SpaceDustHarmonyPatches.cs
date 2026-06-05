@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using KERBALISM;
 using KerbalismBridge;
 
 namespace KerbalismSpaceDust
@@ -31,6 +32,17 @@ namespace KerbalismSpaceDust
 				prefix: new HarmonyMethod(typeof(SpaceDustHarmonyPatches), nameof(SpaceDustFixedUpdatePrefix)),
 				postfix: new HarmonyMethod(typeof(SpaceDustHarmonyPatches), nameof(SpaceDustFixedUpdatePostfix)));
 
+			Type backgroundHarvester = AccessTools.TypeByName("SpaceDust.SpaceDustHarvesterBackground");
+			MethodInfo backgroundProcess = backgroundHarvester != null
+				? AccessTools.Method(backgroundHarvester, "Process")
+				: null;
+			if (backgroundProcess != null)
+			{
+				harmony.Patch(
+					backgroundProcess,
+					prefix: new HarmonyMethod(typeof(SpaceDustHarmonyPatches), nameof(SpaceDustBackgroundProcessPrefix)));
+			}
+
 			patchesApplied = true;
 			BridgeUtils.Log("SpaceDust satellite Harmony patches applied.");
 		}
@@ -45,6 +57,32 @@ namespace KerbalismSpaceDust
 		{
 			if (__instance.part.FindModuleImplementing<SpaceDustHarvesterKerbalismUpdater>() != null)
 				SpaceDustResourceBlocker.ExitBlock();
+		}
+
+		private static bool SpaceDustBackgroundProcessPrefix(object __instance)
+		{
+			ProtoPartModuleSnapshot harvester = AccessTools.Field(__instance.GetType(), "protoMiner")
+				?.GetValue(__instance) as ProtoPartModuleSnapshot;
+			Vessel vessel = AccessTools.Field(__instance.GetType(), "ves")
+				?.GetValue(__instance) as Vessel;
+
+			if (harvester == null || vessel?.protoVessel == null)
+				return true;
+
+			foreach (ProtoPartSnapshot part in vessel.protoVessel.protoPartSnapshots)
+			{
+				if (!part.modules.Contains(harvester))
+					continue;
+
+				bool hasKerbalismUpdater = part.modules.Exists(module => module.moduleName == "SpaceDustHarvesterKerbalismUpdater");
+				if (!hasKerbalismUpdater)
+					return true;
+
+				Lib.Proto.Set(harvester, "Enabled", false);
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

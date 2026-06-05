@@ -246,30 +246,15 @@ namespace KerbalismSpaceDust
 			List<KeyValuePair<string, double>> resourceChangeRequest,
 			double elapsed_s)
 		{
+			// SpaceDust harvesting depends on loaded-vessel intake conditions. Once unloaded,
+			// force the native harvester off so neither Kerbalism nor SpaceDust background
+			// simulation consumes EC, emits heat, or produces resources.
 			ProtoPartModuleSnapshot harvesterSnapshot = BridgeUtils.TryFindPartModuleSnapshot(part_snapshot, "ModuleSpaceDustHarvester");
 			if (harvesterSnapshot != null && Lib.Proto.GetBool(harvesterSnapshot, "Enabled"))
-			{
-				PartModule harvesterPrefab = FindSpaceDustHarvesterPrefab(proto_part);
-				float powerCost = harvesterPrefab != null
-					? BridgeModuleFields.GetFloat(harvesterPrefab, "PowerCost")
-					: 0f;
-				if (powerCost > 0f)
-					resourceChangeRequest.Add(new KeyValuePair<string, double>("ElectricCharge", -powerCost * elapsed_s));
-			}
+				Lib.Proto.Set(harvesterSnapshot, "Enabled", false);
 
 			SystemHeatBackgroundThermal.TryRun(v, elapsed_s);
 			return brokerTitle;
-		}
-
-		private static PartModule FindSpaceDustHarvesterPrefab(Part proto_part)
-		{
-			foreach (PartModule module in proto_part.Modules)
-			{
-				if (module.moduleName == "ModuleSpaceDustHarvester")
-					return module;
-			}
-
-			return null;
 		}
 	}
 }

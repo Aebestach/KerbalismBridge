@@ -286,24 +286,11 @@ namespace KerbalismBridge
 					else if (module.moduleName == "SpaceDustHarvesterKerbalismUpdater")
 					{
 						ProtoPartModuleSnapshot harvester = BridgeUtils.TryFindPartModuleSnapshot(part, "ModuleSpaceDustHarvester");
-						if (harvester == null || !Lib.Proto.GetBool(harvester, "Enabled"))
+						if (harvester == null)
 							continue;
 
-						PartModule harvesterPrefab = FindPrefabModule(prefab, "ModuleSpaceDustHarvester");
-						if (harvesterPrefab == null)
-							continue;
-
-						string heatModuleId = ReadField<string>(harvesterPrefab, harvesterPrefab.GetType(), "HeatModuleID") ?? "";
-						float systemPower = ReadField<float>(harvesterPrefab, harvesterPrefab.GetType(), "SystemPower");
-						float shutdown = ReadField<float>(harvesterPrefab, harvesterPrefab.GetType(), "ShutdownTemperature");
-						int loopId = GetLinkedLoopId(part, prefab, heatModuleId);
-						if (loopId < 0 || systemPower <= 0f)
-							continue;
-
-						EnsureLoop(loops, loopId, v);
-						loops[loopId].netFluxKw += systemPower;
-						loops[loopId].shutdownTemperature = Math.Min(loops[loopId].shutdownTemperature, shutdown);
-						loops[loopId].heatProducers.Add(new HeatProducer { part = part, module = harvester, shutdownTemperature = shutdown });
+						if (Lib.Proto.GetBool(harvester, "Enabled"))
+							Lib.Proto.Set(harvester, "Enabled", false);
 					}
 					else if (module.moduleName == "SystemHeatFissionReactorKerbalismUpdater")
 					{
@@ -794,24 +781,11 @@ namespace KerbalismBridge
 					else if (module.moduleName == "SpaceDustHarvesterKerbalismUpdater")
 					{
 						ProtoPartModuleSnapshot harvester = BridgeUtils.FindPartModuleSnapshot(part, "ModuleSpaceDustHarvester");
-						if (harvester == null || !Lib.Proto.GetBool(harvester, "Enabled"))
+						if (harvester == null)
 							continue;
 
-						PartModule harvesterPrefab = FindPrefabModule(prefab, "ModuleSpaceDustHarvester");
-						if (harvesterPrefab == null)
-							continue;
-
-						string heatModuleId = ReadField<string>(harvesterPrefab, harvesterPrefab.GetType(), "HeatModuleID") ?? "";
-						float systemPower = ReadField<float>(harvesterPrefab, harvesterPrefab.GetType(), "SystemPower");
-						float shutdown = ReadField<float>(harvesterPrefab, harvesterPrefab.GetType(), "ShutdownTemperature");
-						int loopId = GetLinkedLoopId(part, prefab, heatModuleId);
-						if (loopId < 0 || !riskLoopIds.Contains(loopId) || systemPower <= 0f)
-							continue;
-
-						EnsureLoop(loops, loopId, v);
-						loops[loopId].netFluxKw += systemPower;
-						loops[loopId].shutdownTemperature = Math.Min(loops[loopId].shutdownTemperature, shutdown);
-						loops[loopId].heatProducers.Add(new HeatProducer { part = part, module = harvester, shutdownTemperature = shutdown });
+						if (Lib.Proto.GetBool(harvester, "Enabled"))
+							Lib.Proto.Set(harvester, "Enabled", false);
 					}
 					else if (module.moduleName == "SystemHeatFissionReactorKerbalismUpdater")
 					{
