@@ -75,15 +75,13 @@ Default and ScienceOnly profiles have been tested. Other profiles should work wh
 
 Parts whose Kerbalism `Configure` module title is **Chemical Plant**, **Drill**, or **Pump** are converted by Module Manager (`Converters_ProcessControllerSystemHeat.cfg`, `Harvesters_HarvesterSystemHeat.cfg`, `:FINAL`) to `ProcessControllerSystemHeat` / `HarvesterSystemHeat`, given a `ModuleSystemHeat` loop when missing, and wired in `Configure` SETUP blocks. This covers stock Kerbalism ISRU, drills, and NFE processes added onto chemical plants (for example Uraninite centrifuge / breeder reactor).
 
-Not converted by those rules: life-support `Configure` titles such as **Pod**, standalone RTGs (see `RTG_SystemHeat_Patches.cfg` per part), third-party parts with non-standard Configure titles, and a few special-case exclusions (for example Rational Resources + KPBS).
+Not converted by those rules: life-support `Configure` titles such as **Pod**, standalone RTGs (Kerbalism `ProcessController` only — see `NFElectric.cfg` and other Kerbalism Support patches), third-party parts with non-standard Configure titles, and a few special-case exclusions (for example Rational Resources + KPBS).
 
 ### Fission reactors (including NFE)
 
-Kerbalism **Default** replaces NFE `FissionReactor` / `FissionGenerator` on `nfe-reactor-*` with a simplified Kerbalism `ProcessController` (on/off, fixed EC, no SystemHeat loop). That stripped behaviour is **not** what you get when the part also has `ModuleSystemHeatFissionReactor`.
+**NFE `nfe-reactor-*`** (with SystemHeat + Bridge): Kerbalism `NFElectric.cfg` replaces `FissionReactor` / `FissionGenerator` with `ProcessController` + profile process `fission reactor`; Bridge `NFE_FissionReactor_ProcessControllerSystemHeat.cfg` upgrades to **`ProcessControllerSystemHeat`** (removes `ModuleSystemHeatFissionReactor` IO, keeps `ModuleSystemHeat` loop `reactor`). B9 radiator subtypes: `NFE_FissionReactor_B9PartSwitch.cfg` maps B9 `HeatGeneration` → `systemPower`. **`nfe-reactor-*` is excluded from** Native Layer B (`SystemHeatFissionReactors.cfg`).
 
-With **SystemHeat/Extras/SystemHeatFissionReactors** installed (or NFE 2.0+ parts that already use the SystemHeat fission backend), `SystemHeatFissionReactors.cfg` removes Kerbalism's `ProcessController`, adds `SystemHeatFissionReactorKerbalismUpdater`, and routes EC/fuel through Kerbalism while **native SystemHeat still handles reactor waste heat and loop temperature**. `SystemHeat.cfg` adds a `ModuleSystemHeat` loop on the part when one is missing. Unloaded-vessel waste heat is included in `BackgroundThermalSim`.
-
-There is **no** dedicated `nfe-reactor-*` conversion patch in this mod (unlike explicit USI reactor patches in `ModsSupport/`). NFE fission reactors depend on SystemHeat fission extras or NFE's own SystemHeat reactor modules. **KerbalismNFE** does not touch fission reactors (capacitors only). **KerbalismDynamicRadiation** only adds optional radiation decay on top of integrated SystemHeat fission parts.
+Other mods' fission parts still use **`SystemHeatFissionReactorKerbalismUpdater`** (Native Layer B). **zKerbalismNFE** handles only NFE capacitors. Recycler: Layer A in `NFElectric.cfg` + `NFERecycler_ProcessControllerSystemHeat.cfg`.
 
 
 ## Dependencies
@@ -104,7 +102,7 @@ Install these separately; they are **not** included in release packages.
 * [Heat Control](https://github.com/post-kerbin-mining-corporation/HeatControl) ??SystemHeat support for heat exchangers (radiators are already supported by SystemHeat)
 * [Missing History](https://github.com/UmbraSpaceIndustries/USI_Core) ??SystemHeat support for nuclear engines
 * [Near Future Aeronautics](https://github.com/post-kerbin-mining-corporation/NearFutureAeronautics) ??SystemHeat support for nuclear engines
-* [Near Future Electrics](https://github.com/post-kerbin-mining-corporation/NearFutureElectrical) ? `NFERecycler_SystemHeatCompatibility.cfg` (Native); NFE capacitors in **zKerbalismNative**
+* [Near Future Electrics](https://github.com/post-kerbin-mining-corporation/NearFutureElectrical) — optional **[zKerbalismNFE](zKerbalismNFE.md)** satellite (capacitors, recycler)
 * [USI FTT](https://github.com/UmbraSpaceIndustries/FTT) ??SystemHeat support for nuclear reactors
 * [USI Core](https://github.com/UmbraSpaceIndustries/USI_Core) ??SystemHeat support for nuclear reactors and nuclear materials containers
 * **Sterling Systems** ? `ModsSupport/SterlingSystems.cfg` for circular ISRU, metal fuel cells, and molten salt reactors (`ProcessControllerSystemHeat`)

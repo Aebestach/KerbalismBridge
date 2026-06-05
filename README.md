@@ -35,7 +35,8 @@ Part has a mod-native module (ModuleSystemHeat*, FusionReactor, DischargeCapacit
 **Examples**
 
 - **Layer A:** Kerbalism chemical plants / drills; Sterling MAEC **fuel cells**; FFT industrial smelters (Process + optional SystemHeat).
-- **Layer B:** SystemHeat fission reactors / engines; NFE capacitors and SH recycler; FFT fusion reactors / engines; SpaceDust harvesters.
+- **Layer B core:** SystemHeat fission reactors / engines; generic SH converters/harvesters.
+- **Layer B satellites:** NFE (`zKerbalismNFE`), SpaceDust, Cryo, FFT fusion/antimatter (`zKerbalismFFT`), etc.
 
 Full architecture write-up: [docs/architecture/KerbalismBridge-Architecture-en.md](docs/architecture/KerbalismBridge-Architecture-en.md) (中文: [KerbalismBridge-Architecture.md](docs/architecture/KerbalismBridge-Architecture.md)).
 
@@ -51,7 +52,7 @@ Install all three for a typical SystemHeat + Kerbalism setup.
 |-----------------|-----|------|
 | `zKerbalismBridge` | `zKerbalismBridge.dll` | **Shared runtime** — Harmony bootstrap, background thermal sim, editor sim, settings. **Not** Layer A or B; required by Process and Native. |
 | `zKerbalismProcess` | `zKerbalismProcess.dll` | **Layer A (Process)** — `ProcessControllerSystemHeat`, `HarvesterSystemHeat`, converter / harvester / radiator MM |
-| `zKerbalismNative` | `zKerbalismNative.dll` | **Layer B (Native)** — `*KerbalismUpdater`, fission, NFE capacitor / recycler, SpaceDust, etc. |
+| `zKerbalismNative` | `zKerbalismNative.dll` | **Layer B core (Native)** — generic SystemHeat `*KerbalismUpdater`, fission reactors/engines |
 
 Load order: **Bridge → Process / Native** (each `*.host.xml` declares `RequireAssembly` for `zKerbalismBridge`).
 
@@ -68,9 +69,11 @@ Kerbalism
 |-----------------|-----|------|
 | `zKerbalismFFT` | `zKerbalismFFT.dll` | Far Future Technologies — profile, industrial **Layer A** cfg, fusion / antimatter **Layer B** C# |
 | `zKerbalismDynamicRadiation` | `zKerbalismDynamicRadiation.dll` | Post-shutdown radiation decay on integrated fission / fusion parts |
-| `zKerbalismResourceAudit` | `zKerbalismResourceAudit.dll` | Static report of parts whose resources are not integrated with Kerbalism/Bridge (`Logs/`) |
+| `zKerbalismCryo` | `zKerbalismCryo.dll` | CryoTanks + SystemHeat cryogenic tanks — Kerbalism EC/background boiloff |
+| `zKerbalismNFE` | `zKerbalismNFE.dll` | Near Future Electrical — capacitors, nuclear recycler (Layer B) |
+| `zKerbalismSpaceDust` | `zKerbalismSpaceDust.dll` | SpaceDust harvesters (Layer B) |
 
-**NFE capacitors** ship in **`zKerbalismNative`** (no separate NFE package). **SterlingSystemsKerbalism** is maintained by Sterling Systems; this repo only ships `SterlingSystems.cfg` as the FINAL heat bridge under Process.
+**SterlingSystemsKerbalism** is maintained by Sterling Systems; this repo only ships `SterlingSystems.cfg` as the FINAL heat bridge under Process.
 
 ---
 
@@ -89,7 +92,7 @@ Per-package dependencies (SystemHeat, FFT, NFE, …): see [docs/mods/](docs/mods
 ## Installation
 
 1. Install Kerbalism, Module Manager, and **zKerbalismPluginHost**.
-2. Remove legacy `GameData/zKerbalismSystemHeat`, `GameData/zKerbalismNFE`, and any old `Plugins/` copies of Bridge DLLs.
+2. Remove legacy `GameData/zKerbalismSystemHeat` and any old `Plugins/` copies of Bridge DLLs. Replace pre-1.0 monolithic `zKerbalismNFE` (capacitors) with the new **`zKerbalismNFE` satellite** if you use NFE.
 3. Copy **`zKerbalismBridge` + `zKerbalismProcess` + `zKerbalismNative`** into `GameData` (minimum bridge).
 4. Add `zKerbalismFFT` / `zKerbalismDynamicRadiation` if you use those mods.
 5. Delete `ModuleManager.ConfigCache` and restart KSP.
@@ -124,7 +127,7 @@ Build **Bridge** before Process / Native on a clean tree (solution project depen
 .\scripts\package-release.ps1 -Version 1.0.0
 ```
 
-Produces five zips: **KerbalismBridge**, **KerbalismProcess**, **KerbalismNative**, **KerbalismFFT**, **KerbalismDynamicRadiation**. Each zip includes that mod’s README from `docs/mods/`.
+Produces eight zips: **KerbalismBridge**, **KerbalismProcess**, **KerbalismNative**, **KerbalismFFT**, **KerbalismDynamicRadiation**, **KerbalismCryo**, **KerbalismNFE**, **KerbalismSpaceDust**. Each zip includes that mod’s README from `docs/mods/`.
 
 ---
 

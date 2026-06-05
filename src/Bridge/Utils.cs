@@ -9,24 +9,9 @@ namespace KerbalismBridge
 			Debug.Log("[KerbalismBridge] " + msg);
 		}
 
-		public static void LogWarning(string msg)
-		{
-			Debug.LogWarning("[KerbalismBridge] " + msg);
-		}
-
 		public static void LogError(string msg)
 		{
 			Debug.LogError("[KerbalismBridge] " + msg);
-		}
-
-		public static bool VesselInClosedOrbit(Vessel v)
-		{
-			bool result = false;
-			if (!double.IsNaN(v.orbit.eccentricity) && !double.IsNaN(v.orbit.ApA) && !double.IsNaN(v.orbit.PeA))
-			{
-				result = v.orbit.eccentricity < 1;
-			}
-			return result;
 		}
 
 		public static double SampleResourceAbundance(Vessel v, ModuleResourceHarvester harvester)

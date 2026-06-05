@@ -60,11 +60,6 @@ namespace KerbalismFFT
 			}
 		}
 
-		public override void OnLoad(ConfigNode node)
-		{
-			base.OnLoad(node);
-		}
-
 		protected void ParseModesList(Part part)
 		{
 			if (modesListParsed)

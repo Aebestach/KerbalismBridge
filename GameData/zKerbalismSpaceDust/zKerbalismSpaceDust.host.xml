@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismSpaceDust"
+          assembly="zKerbalismSpaceDust"
+          dll="zKerbalismSpaceDust.dll"
+          initType="KerbalismSpaceDust.KerbalismSpaceDustCoreInit" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismSpaceDust_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismSpaceDust_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismSpaceDust_Quit" />
+  <RequireAssembly name="zKerbalismBridge" />
+  <RequireAssembly name="zKerbalismNative" />
+  <RequireAssembly name="SpaceDust" optional="true" />
+</KerbalismHostedPlugin>

@@ -12,11 +12,6 @@ namespace KerbalismFFT
 			Debug.Log("[KerbalismFFT] " + msg);
 		}
 
-		public static void LogWarning(string msg)
-		{
-			Debug.LogWarning("[KerbalismFFT] " + msg);
-		}
-
 		public static void LogError(string msg)
 		{
 			Debug.LogError("[KerbalismFFT] " + msg);
@@ -31,7 +26,7 @@ namespace KerbalismFFT
 			ReflectionStaticCall(className, "RefreshPlanner");
 		}
 
-		public static void ReflectionStaticCall(string ClassName, string MethodName)
+		private static void ReflectionStaticCall(string ClassName, string MethodName)
 		{
 			var staticClass = Type.GetType(ClassName);
 			if (staticClass != null)

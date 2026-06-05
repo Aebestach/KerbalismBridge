@@ -62,11 +62,6 @@ namespace KerbalismNative
 			}
 		}
 
-		public override void OnLoad(ConfigNode node)
-		{
-			base.OnLoad(node);
-		}
-
 		public virtual void FixedUpdate()
 		{
 			if (reactorModule != null && Lib.IsFlight())

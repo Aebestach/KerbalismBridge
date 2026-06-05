@@ -14,8 +14,7 @@ namespace KerbalismNative
 			patchesApplied = true;
 			var harmony = new Harmony("KerbalismNative");
 			harmony.PatchAll(typeof(KerbalismNativeHarmony).Assembly);
-			SpaceDustHarmonyPatches.ApplyOptionalPatches(harmony);
-			BridgeUtils.Log("Native layer Harmony patches applied.");
+			BridgeUtils.Log("Native core Layer B Harmony patches applied.");
 		}
 	}
 }

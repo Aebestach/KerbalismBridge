@@ -36,9 +36,9 @@ Converted to a Kerbalism science experiment (requires Kerbalism **FeatureScience
 
 FFT `fft-*` engines get unlimited ignitions and burn-duration limits where patched (requires Kerbalism **FeatureReliability**). Fusion reactors receive a Reliability module with very high MTBF.
 
-### Cryogenic tanks (optional)
+### Cryogenic tanks
 
-If the [CryoTanks](https://github.com/post-kerbin-mining-corporation/CryoTanks) mod is installed, FFT (and other) parts with `ModuleCryoTank` cooling get a `PlannerController` entry for cryogenic cooling EC in the Kerbalism planner.
+Use **[zKerbalismCryo](zKerbalismCryo.md)** (separate package) for CryoTanks / SystemHeat cryo integration. This FFT package no longer ships cryo patches.
 
 ### Industrial processors (with zKerbalismProcess)
 
@@ -65,7 +65,7 @@ Install these separately; they are **not** included in release packages.
 * [SystemHeat](https://github.com/post-kerbin-mining-corporation/SystemHeat) ? required by FFT and this mod's assembly load order
 * [zKerbalismBridge](https://github.com/Aebestach/KerbalismBridge) ? **strongly recommended**; required for fusion waste heat in unloaded-vessel SystemHeat loop simulation (optional at compile time; detected at runtime via reflection)
 * [Module Manager (latest preferred)](https://github.com/sarbian/ModuleManager)
-* [CryoTanks](https://github.com/post-kerbin-mining-corporation/CryoTanks) ? optional; enables cryo-tank planner patches only
+* [zKerbalismCryo](zKerbalismCryo.md) ? optional; CryoTanks Kerbalism integration (install separately)
 
 
 ## Installation
@@ -94,6 +94,9 @@ In `GameData/zKerbalismFFT/Settings.cfg`:
 
 * `FFT_Engines_Radioactivity_Coeff` ??multiplies radiation from static FFT engine emitters (default `1.0`; lower if engines feel too radioactive)
 * `FFT_FusionReactors_Radioactivity_Coeff` ??multiplies radiation from fusion reactor emitters (default `1.0`)
+* `Antimatter_BackgroundDetonation` ??when `false`, unloaded vessels do not annihilate antimatter in background after containment loss (default `true`)
+* `Antimatter_DetonationGraceSeconds` ??cumulative EC deficit before containment shuts down in background (default `0`)
+* `Antimatter_MaxDetonationPerStep` ??cap antimatter lost per background tick; `0` = unlimited (default `0`)
 
 
 ## Licensing

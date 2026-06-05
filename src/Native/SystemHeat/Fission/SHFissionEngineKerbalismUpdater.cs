@@ -65,11 +65,6 @@ namespace KerbalismNative
 			}
 		}
 
-		public override void OnLoad(ConfigNode node)
-		{
-			base.OnLoad(node);
-		}
-
 		public virtual void FixedUpdate()
 		{
 			if (engineModule != null && Lib.IsFlight())
@@ -78,18 +73,15 @@ namespace KerbalismNative
 				if (MinThrottle > MaxThrottle)
 					MinThrottle = MaxThrottle;
 
-				if (GeneratesElectricity)
-				{
-					FissionReactorResourceSim.UpdateAutoThrottle(engineModule, TimeWarp.fixedDeltaTime);
-					EnsureResourcesParsed();
-					FissionReactorResourceSim.ValidateLoadedReactor(
-						engineModule,
-						vessel,
-						inputs,
-						outputs,
-						brokerTitle,
-						part.partInfo.title);
-				}
+				FissionReactorResourceSim.UpdateAutoThrottle(engineModule, TimeWarp.fixedDeltaTime);
+				EnsureResourcesParsed();
+				FissionReactorResourceSim.ValidateLoadedReactor(
+					engineModule,
+					vessel,
+					inputs,
+					outputs,
+					brokerTitle,
+					part.partInfo.title);
 			}
 		}
 

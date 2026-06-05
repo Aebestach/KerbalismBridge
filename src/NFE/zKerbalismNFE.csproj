@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B4E2C8A1-6F3D-4D91-8E2A-1C9F0B7D4E62}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>KerbalismNFE</RootNamespace>
+    <AssemblyName>zKerbalismNFE</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <DeployOutputPath>$(MSBuildProjectDirectory)\..\..\GameData\zKerbalismNFE\PluginData\</DeployOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>$(DeployOutputPath)</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>$(DeployOutputPath)</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\KSPDLL\others\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Kerbalism">
+      <HintPath>..\..\..\..\KSPDLL\others\Kerbalism.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NearFutureElectrical">
+      <HintPath>..\..\..\..\KSPDLL\others\NearFutureElectrical.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bridge\zKerbalismBridge.csproj">
+      <Project>{C1D2E3F4-A5B6-4789-C0D1-E2F3A4B5C6D7}</Project>
+      <Name>zKerbalismBridge</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Automation\CapacitorDeviceCollector.cs" />
+    <Compile Include="Automation\CapacitorDevices.cs" />
+    <Compile Include="Automation\ComputerDevicesCapacitorPatch.cs" />
+    <Compile Include="CapacitorHarmonyPatches.cs" />
+    <Compile Include="CapacitorResourceSim.cs" />
+    <Compile Include="KerbalismNFECoreInit.cs" />
+    <Compile Include="KerbalismNFEHarmony.cs" />
+    <Compile Include="NFECapacitorKerbalismUpdater.cs" />
+    <Compile Include="NFEUtils.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -85,12 +85,28 @@ $Mods = @(
         ChangelogId  = "zKerbalismDynamicRadiation"
     },
     @{
-        Id           = "zKerbalismResourceAudit"
-        ReleaseName  = "KerbalismResourceAudit"
-        GameDataDir  = "GameData\zKerbalismResourceAudit"
-        DllName      = "zKerbalismResourceAudit.dll"
-        ReadmeSource = "docs\mods\zKerbalismResourceAudit.md"
-        ChangelogId  = "zKerbalismResourceAudit"
+        Id           = "zKerbalismCryo"
+        ReleaseName  = "KerbalismCryo"
+        GameDataDir  = "GameData\zKerbalismCryo"
+        DllName      = "zKerbalismCryo.dll"
+        ReadmeSource = "docs\mods\zKerbalismCryo.md"
+        ChangelogId  = "zKerbalismCryo"
+    },
+    @{
+        Id           = "zKerbalismNFE"
+        ReleaseName  = "KerbalismNFE"
+        GameDataDir  = "GameData\zKerbalismNFE"
+        DllName      = "zKerbalismNFE.dll"
+        ReadmeSource = "docs\mods\zKerbalismNFE.md"
+        ChangelogId  = "zKerbalismNFE"
+    },
+    @{
+        Id           = "zKerbalismSpaceDust"
+        ReleaseName  = "KerbalismSpaceDust"
+        GameDataDir  = "GameData\zKerbalismSpaceDust"
+        DllName      = "zKerbalismSpaceDust.dll"
+        ReadmeSource = "docs\mods\zKerbalismSpaceDust.md"
+        ChangelogId  = "zKerbalismSpaceDust"
     }
 )
 

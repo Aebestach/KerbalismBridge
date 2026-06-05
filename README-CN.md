@@ -35,7 +35,8 @@ Bridge **不会**对所有部件使用同一种整合方式，而是分为两层
 **举例**
 
 - **Layer A：** Kerbalism 化学厂 / 钻机；Sterling MAEC **燃料电**；FFT 工业冶炼厂（Process + 可选 SystemHeat）。
-- **Layer B：** SystemHeat 裂变堆 / 发动机；NFE 电容与 SH 回收机；FFT 聚变堆 / 聚变发动机；SpaceDust 采集。
+- **Layer B 核心：** SystemHeat 裂变堆 / 发动机；通用 SH 转换器 / 采集器 Updater。
+- **Layer B 卫星：** NFE（`zKerbalismNFE`）、SpaceDust、Cryo、FFT 聚变 / 反物质（`zKerbalismFFT`）等。
 
 详细架构说明：[docs/architecture/KerbalismBridge-Architecture.md](docs/architecture/KerbalismBridge-Architecture.md)（English: [KerbalismBridge-Architecture-en.md](docs/architecture/KerbalismBridge-Architecture-en.md)）。
 
@@ -51,7 +52,7 @@ Bridge **不会**对所有部件使用同一种整合方式，而是分为两层
 |-----------------|-----|------|
 | `zKerbalismBridge` | `zKerbalismBridge.dll` | **共用运行时** — Harmony 引导、背景热模拟、编辑器仿真、设置。既非 Layer A 也非 Layer B，但 Process / Native 均依赖它。 |
 | `zKerbalismProcess` | `zKerbalismProcess.dll` | **Layer A（Process 层）** — `ProcessControllerSystemHeat`、`HarvesterSystemHeat`、转换器 / 采集 / 散热器 MM |
-| `zKerbalismNative` | `zKerbalismNative.dll` | **Layer B（Native 层）** — `*KerbalismUpdater`、裂变、NFE 电容 / 回收机、SpaceDust 等 |
+| `zKerbalismNative` | `zKerbalismNative.dll` | **Layer B 核心** — 通用 SystemHeat `*KerbalismUpdater`、裂变堆 / 发动机 |
 
 加载顺序：**Bridge → Process / Native**（各 `*.host.xml` 通过 `RequireAssembly` 声明依赖 `zKerbalismBridge`）。
 
@@ -68,9 +69,11 @@ Kerbalism
 |-----------------|-----|------|
 | `zKerbalismFFT` | `zKerbalismFFT.dll` | Far Future Technologies — 配方、工业厂 **Layer A** cfg、聚变 / 反物质 **Layer B** C# |
 | `zKerbalismDynamicRadiation` | `zKerbalismDynamicRadiation.dll` | 已整合的裂变 / 聚变部件关堆后的辐射衰减 |
-| `zKerbalismResourceAudit` | `zKerbalismResourceAudit.dll` | 静态扫描未走 Kerbalism/Bridge 的资源模块，报告写入 `Logs/` |
+| `zKerbalismCryo` | `zKerbalismCryo.dll` | CryoTanks + SystemHeat 低温罐 Layer B |
+| `zKerbalismNFE` | `zKerbalismNFE.dll` | Near Future Electrical 电容 / 回收机 Layer B |
+| `zKerbalismSpaceDust` | `zKerbalismSpaceDust.dll` | SpaceDust 采集器 Layer B |
 
-**NFE 电容** 已并入 **`zKerbalismNative`**（无独立 NFE 包）。**SterlingSystemsKerbalism** 由 Sterling Systems 维护；本仓库仅在 Process 层提供 `SterlingSystems.cfg` 作为 FINAL 热桥。
+**SterlingSystemsKerbalism** 由 Sterling Systems 维护；本仓库仅在 Process 层提供 `SterlingSystems.cfg` 作为 FINAL 热桥。
 
 ---
 
@@ -89,9 +92,9 @@ Kerbalism
 ## 安装步骤
 
 1. 安装 Kerbalism、Module Manager 与 **zKerbalismPluginHost**。
-2. 删除旧版 `GameData/zKerbalismSystemHeat`、`GameData/zKerbalismNFE`，以及 `Plugins/` 里任何 Bridge DLL 副本。
+2. 删除旧版 `GameData/zKerbalismSystemHeat` 以及 `Plugins/` 里任何 Bridge DLL 副本。若从旧版 Bridge 升级，请安装新的 **`zKerbalismNFE` 卫星**（电容不再随 Native 内置）。
 3. 将 **`zKerbalismBridge` + `zKerbalismProcess` + `zKerbalismNative`** 复制到 `GameData`（主桥最低配置）。
-4. 若使用对应 mod，再安装 `zKerbalismFFT` / `zKerbalismDynamicRadiation`。
+4. 按需安装卫星：`zKerbalismFFT`、`zKerbalismNFE`、`zKerbalismSpaceDust`、`zKerbalismCryo`、`zKerbalismDynamicRadiation` 等。
 5. 删除 `ModuleManager.ConfigCache` 并重启 KSP。
 
 ---
@@ -124,7 +127,7 @@ GameData/zKerbalismDynamicRadiation/PluginData/zKerbalismDynamicRadiation.dll
 .\scripts\package-release.ps1 -Version 1.0.0
 ```
 
-生成五个 zip：**KerbalismBridge**、**KerbalismProcess**、**KerbalismNative**、**KerbalismFFT**、**KerbalismDynamicRadiation**。每个 zip 内含对应 `docs/mods/` 下的 README。
+生成八个 zip：**KerbalismBridge**、**KerbalismProcess**、**KerbalismNative**、**KerbalismFFT**、**KerbalismDynamicRadiation**、**KerbalismCryo**、**KerbalismNFE**、**KerbalismSpaceDust**。每个 zip 内含对应 `docs/mods/` 下的 README。
 
 ---
 

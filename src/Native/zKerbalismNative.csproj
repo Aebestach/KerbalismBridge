@@ -39,16 +39,12 @@
       <HintPath>..\..\..\..\KSPDLL\others\Kerbalism.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="NearFutureElectrical">
-      <HintPath>..\..\..\..\KSPDLL\others\NearFutureElectrical.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="SystemHeat">
       <HintPath>..\..\..\..\KSPDLL\others\SystemHeat.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -69,16 +65,7 @@
     <Compile Include="Automation\ComputerDevicesPatch.cs" />
     <Compile Include="Core\KerbalismNativeCoreInit.cs" />
     <Compile Include="Core\KerbalismNativeHarmony.cs" />
-    <Compile Include="Core\NativeUtils.cs" />
-    <Compile Include="NearFutureElectrical\Automation\CapacitorDeviceCollector.cs" />
-    <Compile Include="NearFutureElectrical\Automation\CapacitorDevices.cs" />
-    <Compile Include="NearFutureElectrical\CapacitorHarmonyPatches.cs" />
-    <Compile Include="NearFutureElectrical\CapacitorResourceSim.cs" />
-    <Compile Include="NearFutureElectrical\NFECapacitorKerbalismUpdater.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SpaceDust\SpaceDustHarvesterKerbalismUpdater.cs" />
-    <Compile Include="SpaceDust\SpaceDustHarmonyPatches.cs" />
-    <Compile Include="SpaceDust\SpaceDustResourceBlocker.cs" />
     <Compile Include="SystemHeat\Converters\SHNativeConverterResourceSim.cs" />
     <Compile Include="SystemHeat\Converters\SystemHeatConverterKerbalismUpdater.cs" />
     <Compile Include="SystemHeat\Fission\Automation\FissionDeviceCollector.cs" />

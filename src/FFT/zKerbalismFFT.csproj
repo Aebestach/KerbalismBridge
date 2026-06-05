@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Automation\ComputerDevicesPatch.cs" />
     <Compile Include="Automation\FusionReactorDevices.cs" />
+    <Compile Include="FFTSettings.cs" />
     <Compile Include="KerbalismFFTCoreInit.cs" />
     <Compile Include="FusionReactorResourceSim.cs" />
     <Compile Include="HarmonyPatches.cs" />

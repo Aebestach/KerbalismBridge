@@ -21,7 +21,9 @@ KerbalismBridge/                         ← 仓库 / 解决方案
 └── 【卫星 · 可选】
     GameData/zKerbalismFFT/              ← FFT 配方 / 工业 Process 补丁 / Fusion MM
     GameData/zKerbalismDynamicRadiation/ ← 独立 DLL：关堆后辐射衰减
-    GameData/zKerbalismResourceAudit/    ← 独立 DLL：静态扫描未整合资源模块，写 Logs/
+    GameData/zKerbalismCryo/             ← CryoTanks + SH 低温罐 Layer B
+    GameData/zKerbalismNFE/              ← NFE 电容 / 回收机 Layer B
+    GameData/zKerbalismSpaceDust/        ← SpaceDust 采集器 Layer B
 
 【外部 · 玩家另装，不合入本仓库】
     SterlingSystems                      ← 部件本体
@@ -32,7 +34,10 @@ KerbalismBridge/                         ← 仓库 / 解决方案
 |----|-----|------|
 | **zKerbalismBridge** | 有 | 共用运行时；不含 Process / Updater 模块 |
 | **zKerbalismProcess** | 有 | Kerbalism **替代式**整合；`:NEEDS[zKerbalismBridge]`；热相关 patch 另 `:NEEDS[SystemHeat]` |
-| **zKerbalismNative** | 有 | **保留原生模块** + Updater；`:NEEDS[zKerbalismBridge]`；按 mod 分 patch（SystemHeat / FFT / NFE 等） |
+| **zKerbalismNative** | 有 | **Layer B 核心**：通用 SystemHeat Updater + 裂变堆/机；`:NEEDS[zKerbalismBridge,SystemHeat]` |
+| **zKerbalismNFE** | 有 | NFE 电容、核回收机（Layer B 卫星） |
+| **zKerbalismSpaceDust** | 有 | SpaceDust 采集器（Layer B 卫星） |
+| **zKerbalismCryo** | 有 | CryoTanks / SH 低温罐（Layer B 卫星） |
 | **zKerbalismFFT** | 有 | Profile、工业厂 Layer A cfg、Fusion 挂 Updater 的 MM |
 | **zKerbalismDynamicRadiation** | 有 | 可选玩法；软依赖已整合的堆/发动机 |
 | **SterlingSystemsKerbalism** | 无 | Sterling 维护；本仓库仅 **`ModsSupport/SterlingSystems.cfg`** 做 FINAL 热桥 |
@@ -46,7 +51,7 @@ Kerbalism
             └── zKerbalismNative   ←── SystemHeat / FFT / NFE …（按 patch）
 ```
 
-**NFE 电容 C#** 已并入 **zKerbalismNative**（无独立 zKerbalismNFE.dll）。FFT 工业厂、Sterling ISRU / **Fuel Cell** 等仍属 **Process 层** cfg。
+**NFE、SpaceDust、Cryo** 等第三方 Layer B 整合在**卫星 DLL**（`zKerbalismNFE`、`zKerbalismSpaceDust`、`zKerbalismCryo`）。**zKerbalismNative** 仅保留 SystemHeat 通用核心。FFT 工业厂、Sterling ISRU / **Fuel Cell** 等仍属 **Process 层** cfg。
 
 ---
 
@@ -99,8 +104,9 @@ Kerbalism
 
 - NFE 核回收机（`ModuleSystemHeatConverter` + Updater）
 - FFT 聚变堆 / 聚变发动机（`Fusion*KerbalismUpdater`，DLL 在 **zKerbalismNative** / **zKerbalismFFT**）
-- NFE 电容（`NFECapacitorKerbalismUpdater`，**zKerbalismNative**）
-- SystemHeat 裂变堆 / 发动机、SpaceDust 采集
+- NFE 电容（`NFECapacitorKerbalismUpdater`，**zKerbalismNFE**）
+- SystemHeat 裂变堆 / 发动机（**zKerbalismNative**）
+- SpaceDust 采集（**zKerbalismSpaceDust**）
 
 ---
 

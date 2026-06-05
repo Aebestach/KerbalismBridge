@@ -62,12 +62,6 @@ namespace KerbalismFFT
 			}
 		}
 
-		public override void OnLoad(ConfigNode node)
-		{
-			base.OnLoad(node);
-			//ParseModesList(part);
-		}
-
 		// Fetch modes list from fusion reactor ConfigNode
 		protected void ParseModesList(Part part)
 		{

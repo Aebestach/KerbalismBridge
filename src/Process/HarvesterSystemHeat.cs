@@ -13,7 +13,7 @@ namespace KerbalismProcess
     {
         private static readonly CrewSpecs EngineerSpecs = new CrewSpecs("Engineer@0");
 
-        // --- SystemHeat-facing fields (no resource IO here) ---
+        // SystemHeat-facing fields; resource IO remains Kerbalism's responsibility.
         [KSPField(isPersistant = false)] public string systemHeatModuleID = "";   // Must match ModuleSystemHeat.moduleID on the same part
         [KSPField(isPersistant = false)] public float shutdownTemperature = 1000f;      // K
         [KSPField(isPersistant = false)] public float systemOutletTemperature = 1000f;  // K
@@ -25,8 +25,7 @@ namespace KerbalismProcess
         [KSPField(isPersistant = false)] public bool AutoShutdown = true;
         [KSPField(isPersistant = false)] public bool GeneratesHeat = false;
 
-        // Cached SystemHeat module on this part
-        private ModuleSystemHeat heatModule;  // ModuleSystemHeat
+        private ModuleSystemHeat heatModule;
 
         public void ModuleIsConfigured() { }
 
@@ -34,7 +33,6 @@ namespace KerbalismProcess
 
         public override string GetInfo()
         {
-            // Add SH info beneath Harvester tooltip text, mirroring your ProcessController version
             string baseInfo = base.GetInfo();
             int pos = baseInfo.IndexOf("\n\n");
             string sh = Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_PartInfoAdd",
@@ -46,8 +44,7 @@ namespace KerbalismProcess
 
         public void Start()
         {
-            // Find the SystemHeat loop we publish to
-            heatModule = ModuleUtils.FindHeatModule(this.part, systemHeatModuleID);
+            heatModule = ModuleUtils.FindHeatModule(part, systemHeatModuleID);
         }
 
         public void Configure(bool enable, int multiplier)
@@ -93,7 +90,7 @@ namespace KerbalismProcess
                 resource,
                 Harvester.AdjustedRate(this, EngineerSpecs, crew, simulated_abundance) * thermalEff));
 
-                return Localizer.Format("#LOC_KerbalismBridge_Brokers_Harvester");
+            return Localizer.Format("#LOC_KerbalismBridge_Brokers_Harvester");
         }
 
         private static List<ProtoCrewMember> GetEditorCrew()
@@ -132,17 +129,6 @@ namespace KerbalismProcess
         {
             if (heatModule != null)
             {
-                // Auto-shutdown guard (flight only; editor simulation keeps running to heat the loop)
-                if (AutoShutdown && !SystemHeatEditorSimulation.IsEditorScene && heatModule.currentLoopTemperature >= shutdownTemperature)
-                {
-                    if (running)
-                    {
-                        DisableModule();
-                    }
-                    heatModule.AddFlux(resource, 0f, 0f, false);
-                    return;
-                }
-
                 if (ModuleIsActive())
                     heatModule.AddFlux(resource, systemOutletTemperature, systemPower, true);
                 else
@@ -164,7 +150,8 @@ namespace KerbalismProcess
 
         private void UpdateSystemHeatFlight()
         {
-            if (!ModuleIsActive()) return;
+            if (!ModuleIsActive())
+                return;
 
             if (AutoShutdown && heatModule.currentLoopTemperature > shutdownTemperature)
             {
@@ -180,7 +167,7 @@ namespace KerbalismProcess
         {
             Harvester.BackgroundUpdate(v, module_snapshot, proto_part_module as Harvester, elapsed_s);
             SystemHeatBackgroundThermal.TryRun(v, elapsed_s);
-                return Localizer.Format("#LOC_KerbalismBridge_Brokers_Harvester");
+            return Localizer.Format("#LOC_KerbalismBridge_Brokers_Harvester");
         }
     }
 }

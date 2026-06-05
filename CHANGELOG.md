@@ -8,7 +8,7 @@ Notes for the **Kerbalism Bridge** monorepo. Each section is one installable mod
 
 ### [1.0.0] - 2026-06-01
 
-- Initial **Kerbalism Bridge** release: three main DLLs (`zKerbalismBridge`, `zKerbalismProcess`, `zKerbalismNative`) plus optional satellites (`zKerbalismFFT`, `zKerbalismDynamicRadiation`, `zKerbalismResourceAudit`).
+- Initial **Kerbalism Bridge** release: three main DLLs (`zKerbalismBridge`, `zKerbalismProcess`, `zKerbalismNative`) plus optional satellites.
 - Process / Native architecture; see [docs/architecture/KerbalismBridge-Architecture.md](docs/architecture/KerbalismBridge-Architecture.md).
 - NFE capacitor integration ships in **zKerbalismNative** (no separate NFE package).
 - Loaded via [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) (`PluginData/` + `*.host.xml`).
@@ -41,15 +41,25 @@ Notes for the **Kerbalism Bridge** monorepo. Each section is one installable mod
 - Native layer: `*KerbalismUpdater`, SystemHeat fission, SpaceDust, NFE recycler and capacitor integration.
 - Requires `zKerbalismBridge`; per-mod patches declare additional `:NEEDS[...]`.
 
+### [1.0.0] - 2026-06-02
+
+- **Refactor:** Native is now **Layer B core only** (generic SH converters/harvesters, fission). NFE / SpaceDust / FFT regolith cleanup moved to satellites.
+
 ---
 
-## zKerbalismFFT (1.0.0)
+## zKerbalismNFE (1.0.0)
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-02
 
-- Kerbalism integration for Far Future Technologies: antimatter tanks, fusion reactors / engines, science, reliability.
-- Loaded and unloaded vessel resource routing; optional background fusion heat bridge to `zKerbalismBridge`.
-- Kerbalism Automation; KerbalismSupport profile supplies; B9PartSwitch antimatter tank patch; industrial Process + SystemHeat patches.
+- Restored as optional satellite (formerly merged into Native): NFE capacitors + nuclear recycler Layer B.
+
+---
+
+## zKerbalismSpaceDust (1.0.0)
+
+### [1.0.0] - 2026-06-02
+
+- New satellite: SpaceDust `ModuleSpaceDustHarvester` Layer B integration.
 
 ---
 
@@ -62,10 +72,26 @@ Notes for the **Kerbalism Bridge** monorepo. Each section is one installable mod
 
 ---
 
-## zKerbalismResourceAudit (1.0.0)
+## zKerbalismCryo (1.0.0)
 
 ### [1.0.0] - 2026-06-02
 
-- Optional static audit of loaded parts with stock/native resource modules not integrated with Kerbalism/Bridge.
-- Writes English logs under `Logs/zKerbalismResourceAudit/scan_*` (summary, parts, by-mod, by-module).
-- Tunable `Settings.cfg`; no in-flight scanning.
+- New satellite mod: CryoTanks `ModuleCryoTank` and SystemHeat `ModuleSystemHeatCryoTank` Kerbalism integration (Layer B).
+- Fixes per-part background boiloff, Kerbalism EC path for active cooling, Harmony skip of duplicate `ProcessCryoTank`.
+
+---
+
+## zKerbalismFFT (1.0.0)
+
+### [1.0.0] - 2026-06-01
+
+- Kerbalism integration for Far Future Technologies: antimatter tanks, fusion reactors / engines, science, reliability.
+- Loaded and unloaded vessel resource routing; optional background fusion heat bridge to `zKerbalismBridge`.
+- Kerbalism Automation; KerbalismSupport profile supplies; B9PartSwitch antimatter tank patch; industrial Process + SystemHeat patches.
+
+### [1.0.0] - 2026-06-02
+
+- Antimatter background: fix EC deficit vs `elapsed_s` (false detonation).
+- Settings: `Antimatter_BackgroundDetonation`, `Antimatter_DetonationGraceSeconds`, `Antimatter_MaxDetonationPerStep`.
+- CryoTanks patches moved to **zKerbalismCryo**.
+

@@ -47,7 +47,7 @@ namespace KerbalismBridge
 				return fallback;
 
 			FieldInfo field = module.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			if (field != null && field.FieldType == typeof(T))
+			if (field != null && typeof(T).IsAssignableFrom(field.FieldType))
 				return (T)field.GetValue(module);
 
 			return fallback;

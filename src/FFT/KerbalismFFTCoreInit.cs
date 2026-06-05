@@ -7,6 +7,7 @@ namespace KerbalismFFT
 	{
 		public static void Initialize()
 		{
+			FFTSettings.Load();
 			KerbalismFFTHarmony.ApplyPatches();
 		}
 	}

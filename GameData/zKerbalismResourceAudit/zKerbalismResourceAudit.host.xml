@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<KerbalismHostedPlugin>
-  <Plugin id="KerbalismResourceAudit"
-          assembly="zKerbalismResourceAudit"
-          dll="zKerbalismResourceAudit.dll" />
-  <RequireKerbalism warnTitleLoc="#LOC_KerbalismResourceAudit_KerbalismNotFound_Title"
-                    warnMessageLoc="#LOC_KerbalismResourceAudit_KerbalismNotFound_Msg"
-                    quitButtonLoc="#LOC_KerbalismResourceAudit_Quit" />
-</KerbalismHostedPlugin>

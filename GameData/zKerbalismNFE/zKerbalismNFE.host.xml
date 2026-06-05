@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KerbalismHostedPlugin>
+  <Plugin id="KerbalismNFE"
+          assembly="zKerbalismNFE"
+          dll="zKerbalismNFE.dll"
+          initType="KerbalismNFE.KerbalismNFECoreInit" />
+  <RequireKerbalism warnTitleLoc="#LOC_KerbalismNFE_KerbalismNotFound_Title"
+                    warnMessageLoc="#LOC_KerbalismNFE_KerbalismNotFound_Msg"
+                    quitButtonLoc="#LOC_KerbalismNFE_Quit" />
+  <RequireAssembly name="zKerbalismBridge" />
+  <RequireAssembly name="zKerbalismNative" />
+  <RequireAssembly name="NearFutureElectrical" />
+</KerbalismHostedPlugin>

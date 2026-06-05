@@ -21,8 +21,6 @@ GameData/zKerbalismNFE/Plugins/
 GameData/zKerbalismNFE/Plugin/
 GameData/zKerbalismDynamicRadiation/Plugins/
 GameData/zKerbalismDynamicRadiation/Plugin/
-GameData/zKerbalismResourceAudit/Plugins/
-GameData/zKerbalismResourceAudit/Plugin/
 
 # Built plugins (optional: remove to commit DLLs)
 GameData/**/PluginData/*.dll

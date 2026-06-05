@@ -5,7 +5,7 @@ using KERBALISM;
 namespace KerbalismNative
 {
 	[HarmonyPatch(typeof(Computer), nameof(Computer.GetModuleDevices))]
-	internal static class Patch_Computer_GetModuleDevices
+	internal static class Patch_Computer_GetModuleDevices_Fission
 	{
 		private static void Postfix(Vessel v, ref List<Device> __result)
 		{
@@ -13,19 +13,12 @@ namespace KerbalismNative
 				return;
 
 			FissionDeviceCollector.RemoveDevices(__result);
-			CapacitorDeviceCollector.RemoveDevices(__result);
 
 			var moduleDevices = new List<Device>();
 			if (v.loaded)
-			{
 				FissionDeviceCollector.CollectLoaded(v, moduleDevices);
-				CapacitorDeviceCollector.CollectLoaded(v, moduleDevices);
-			}
 			else
-			{
 				FissionDeviceCollector.CollectProto(v, moduleDevices);
-				CapacitorDeviceCollector.CollectProto(v, moduleDevices);
-			}
 
 			if (moduleDevices.Count == 0)
 				return;
