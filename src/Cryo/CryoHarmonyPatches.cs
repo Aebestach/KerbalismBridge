@@ -1,13 +1,12 @@
 using System;
-using System.Linq;
 using System.Reflection;
+using HarmonyLib;
 using KERBALISM;
 
 namespace KerbalismCryo
 {
 	internal static class CryoHarmonyPatches
 	{
-		private const string HarmonyAssemblyName = "0Harmony";
 		private static bool patchesApplied;
 
 		internal static void ApplyPatches()
@@ -15,35 +14,12 @@ namespace KerbalismCryo
 			if (patchesApplied)
 				return;
 
-			Assembly harmonyAssembly = FindLoadedAssembly(HarmonyAssemblyName);
-			if (harmonyAssembly == null)
-			{
-				CryoUtils.LogError("0Harmony not found; CryoTanks EC patches not applied.");
-				return;
-			}
-
 			try
 			{
-				Type harmonyType = harmonyAssembly.GetType("HarmonyLib.Harmony");
-				Type harmonyMethodType = harmonyAssembly.GetType("HarmonyLib.HarmonyMethod");
-				if (harmonyType == null || harmonyMethodType == null)
-				{
-					CryoUtils.LogError("HarmonyLib types not found.");
-					return;
-				}
-
-				object harmony = Activator.CreateInstance(harmonyType, "KerbalismCryo");
-				MethodInfo patchMethod = harmonyType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-					.FirstOrDefault(m => m.Name == "Patch" && m.GetParameters().Length >= 2);
-				if (patchMethod == null)
-				{
-					CryoUtils.LogError("Harmony.Patch not found.");
-					return;
-				}
-
-				PatchProcessCryoTank(harmony, patchMethod, harmonyMethodType);
+				var harmony = new Harmony("KerbalismCryo");
+				PatchProcessCryoTank(harmony);
 				// ModuleCryoTank only: block stock EC drain (#717). SH cryo uses loop heat, keep native FixedUpdate when loaded.
-				PatchNativeFixedUpdate(harmony, patchMethod, harmonyMethodType, "ModuleCryoTank");
+				PatchNativeFixedUpdate(harmony, "ModuleCryoTank");
 
 				patchesApplied = true;
 				CryoUtils.Log("Harmony patches applied.");
@@ -54,7 +30,7 @@ namespace KerbalismCryo
 			}
 		}
 
-		static void PatchProcessCryoTank(object harmony, MethodInfo patchMethod, Type harmonyMethodType)
+		static void PatchProcessCryoTank(Harmony harmony)
 		{
 			MethodInfo target = typeof(Background).GetMethod("ProcessCryoTank", BindingFlags.Static | BindingFlags.NonPublic);
 			MethodInfo prefix = typeof(Patch_Kerbalism_ProcessCryoTank).GetMethod(nameof(Patch_Kerbalism_ProcessCryoTank.Prefix), BindingFlags.Static | BindingFlags.Public);
@@ -64,11 +40,10 @@ namespace KerbalismCryo
 				return;
 			}
 
-			object prefixHarmonyMethod = Activator.CreateInstance(harmonyMethodType, prefix);
-			InvokePatch(harmony, patchMethod, target, prefixHarmonyMethod, null);
+			harmony.Patch(target, prefix: new HarmonyMethod(prefix));
 		}
 
-		static void PatchNativeFixedUpdate(object harmony, MethodInfo patchMethod, Type harmonyMethodType, string moduleName)
+		static void PatchNativeFixedUpdate(Harmony harmony, string moduleName)
 		{
 			Type targetType = FindPartModuleType(moduleName);
 			if (targetType == null)
@@ -85,8 +60,7 @@ namespace KerbalismCryo
 				return;
 			}
 
-			object prefixHarmonyMethod = Activator.CreateInstance(harmonyMethodType, prefix);
-			InvokePatch(harmony, patchMethod, target, prefixHarmonyMethod, null);
+			harmony.Patch(target, prefix: new HarmonyMethod(prefix));
 		}
 
 		static Type FindPartModuleType(string moduleName)
@@ -105,25 +79,6 @@ namespace KerbalismCryo
 			return null;
 		}
 
-		static void InvokePatch(object harmony, MethodInfo patchMethod, MethodInfo target, object prefix, object postfix)
-		{
-			ParameterInfo[] parameters = patchMethod.GetParameters();
-			if (parameters.Length == 5)
-				patchMethod.Invoke(harmony, new[] { target, prefix, postfix, null, null });
-			else
-				patchMethod.Invoke(harmony, new[] { target, prefix, postfix });
-		}
-
-		static Assembly FindLoadedAssembly(string assemblyName)
-		{
-			foreach (AssemblyLoader.LoadedAssembly loaded in AssemblyLoader.loadedAssemblies)
-			{
-				if (loaded.assembly.GetName().Name == assemblyName)
-					return loaded.assembly;
-			}
-
-			return null;
-		}
 	}
 
 	internal static class Patch_Kerbalism_ProcessCryoTank

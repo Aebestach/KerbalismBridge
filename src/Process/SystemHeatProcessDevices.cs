@@ -61,6 +61,9 @@ namespace KerbalismProcess
 
 		private bool IsProtoDeployed()
 		{
+			if (!prefab.requireDeploy)
+				return true;
+
 			if (animator != null)
 				return Lib.Proto.GetBool(animator, "isDeployed");
 

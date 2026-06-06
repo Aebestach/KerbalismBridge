@@ -49,6 +49,10 @@
       <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
@@ -63,10 +67,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComputerDevicesSystemHeatPatch.cs" />
+    <Compile Include="DeployAnimationGate.cs" />
     <Compile Include="FissionReactorProcessDevices.cs" />
     <Compile Include="HarvesterSystemHeat.cs" />
     <Compile Include="ResourceSimulatorPlannerPatch.cs" />
     <Compile Include="KerbalismProcessCoreInit.cs" />
+    <Compile Include="ProcessControllerB9ResourceSync.cs" />
+    <Compile Include="ProcessControllerDeployable.cs" />
     <Compile Include="ProcessControllerSystemHeat.cs" />
     <Compile Include="ProcessHarmonyPatches.cs" />
     <Compile Include="SystemHeatProcessDevices.cs" />

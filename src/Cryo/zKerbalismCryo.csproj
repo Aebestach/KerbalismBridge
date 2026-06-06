@@ -32,6 +32,10 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\KSPDLL\others\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>

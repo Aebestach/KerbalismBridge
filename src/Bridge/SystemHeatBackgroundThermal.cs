@@ -191,7 +191,7 @@ namespace KerbalismBridge
 							coreDamageCurve = BridgeModuleFields.GetField(processPrefab, "coreDamageCurve", new FloatCurve())
 						});
 
-						if (!IsProcessOperational(part, prefab, module))
+						if (!IsProcessOperational(part, prefab, module, processPrefab))
 							continue;
 
 						if (isFission
@@ -696,7 +696,7 @@ namespace KerbalismBridge
 							coreDamageCurve = BridgeModuleFields.GetField(processPrefab, "coreDamageCurve", new FloatCurve())
 						});
 
-						if (!IsProcessOperational(part, prefab, module))
+						if (!IsProcessOperational(part, prefab, module, processPrefab))
 							continue;
 
 						if (Lib.Proto.GetString(module, "resource") == "_Nukereactor"
@@ -957,12 +957,16 @@ namespace KerbalismBridge
 			return false;
 		}
 
-		private static bool IsProcessOperational(ProtoPartSnapshot part, Part prefab, ProtoPartModuleSnapshot module)
+		private static bool IsProcessOperational(ProtoPartSnapshot part, Part prefab, ProtoPartModuleSnapshot module, PartModule processPrefab)
 		{
 			if (Lib.Proto.GetBool(module, "broken") || !Lib.Proto.GetBool(module, "running"))
 				return false;
 
-			if (!Lib.IsEditor() && prefab.FindModuleImplementing<ModuleAnimationGroup>() != null)
+			bool requireDeploy = processPrefab != null
+				? BridgeModuleFields.GetBool(processPrefab, "requireDeploy", false)
+				: Lib.Proto.GetBool(module, "requireDeploy");
+
+			if (requireDeploy && !Lib.IsEditor() && prefab.FindModuleImplementing<ModuleAnimationGroup>() != null)
 			{
 				ProtoPartModuleSnapshot animator = BridgeUtils.TryFindPartModuleSnapshot(part, "ModuleAnimationGroup");
 				if (animator != null)

@@ -24,11 +24,17 @@ namespace KerbalismProcess
 	{
 		private static void Prefix(ProcessController __instance, ref bool value)
 		{
-			if (value
-				&& __instance is ProcessControllerSystemHeat heatController
+			if (!value || Lib.IsEditor())
+				return;
+
+			if (__instance is ProcessControllerSystemHeat heatController
 				&& heatController.RequiresDeployGate()
-				&& !heatController.IsDeployedForUse()
-				&& !Lib.IsEditor())
+				&& !heatController.IsDeployedForUse())
+				value = false;
+
+			if (__instance is ProcessControllerDeployable deployableController
+				&& deployableController.RequiresDeployGate()
+				&& !deployableController.IsDeployedForUse())
 				value = false;
 		}
 
@@ -36,12 +42,14 @@ namespace KerbalismProcess
 		{
 			if (__instance is ProcessControllerSystemHeat heatController)
 				heatController.OnRunningChanged();
+			else if (__instance is ProcessControllerDeployable deployableController)
+				deployableController.OnRunningChanged();
 		}
 	}
 
 	internal static class ProcessDeploySync
 	{
-		internal static void FromAnimator(Part part)
+		internal static void FromAnimator(Part part, bool deployStarted = false)
 		{
 			if (part == null)
 				return;
@@ -56,7 +64,28 @@ namespace KerbalismProcess
 					continue;
 
 				if (animator.isDeployed)
-					module.EnableModule();
+				{
+					if (deployStarted)
+						module.MarkDeployStarted();
+					else
+						module.EnableModule();
+				}
+				else
+					module.DisableModule();
+			}
+
+			foreach (ProcessControllerDeployable module in part.FindModulesImplementing<ProcessControllerDeployable>())
+			{
+				if (!module.RequiresDeployGate())
+					continue;
+
+				if (animator.isDeployed)
+				{
+					if (deployStarted)
+						module.MarkDeployStarted();
+					else
+						module.EnableModule();
+				}
 				else
 					module.DisableModule();
 			}
@@ -68,7 +97,7 @@ namespace KerbalismProcess
 	{
 		private static void Postfix(ModuleAnimationGroup __instance)
 		{
-			ProcessDeploySync.FromAnimator(__instance.part);
+			ProcessDeploySync.FromAnimator(__instance.part, deployStarted: true);
 		}
 	}
 

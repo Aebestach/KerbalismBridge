@@ -43,16 +43,21 @@ namespace KerbalismProcess
 
         // Must match ModuleAnimationGroup.moduleType for deploy/retract actions (e.g. Preheater, Convector).
         [KSPField(isPersistant = false)] public string deployModuleType = "";
+        [KSPField(isPersistant = false)] public bool requireDeploy = false;
+        [KSPField(isPersistant = false)] public string processID = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Efficiency: -1%", groupName = "Process", groupDisplayName = "Process Info")]
         public string ConverterOfEfficiency = "-1%";
 
         private ModuleSystemHeat heatModule;
         private bool requiresDeploy;
+        private bool waitingForDeployAnimation;
+        private int deployAnimationSettleFrames;
 
         private double lastAppliedCapacity = -1; // Cache the last capacity we applied so we don't spam writes 
 
         private double configuredCapacity = -1; // Cache Kerbalism's "100%" capacity after Configure()
+        private const int DeployAnimationSettleFrames = 2;
 
         public string ReactorPowerStatus => IsRunning() ? CurrentPowerPercent.ToString("0.#") + "%" : Local.Generic_STOPPED;
 
@@ -67,7 +72,7 @@ namespace KerbalismProcess
         // Called by Harmony patch on ProcessController.SetRunning (base method is not virtual).
         internal void OnRunningChanged()
         {
-            if (DeployGateActive() && !deployed && running)
+            if (DeployGateActive() && !IsDeployedForUse() && running)
             {
                 base.SetRunning(false);
                 if (heatModule != null)
@@ -98,6 +103,9 @@ namespace KerbalismProcess
             if (HighLogic.LoadedSceneIsFlight)
                 return info;
 
+            if (systemPower == 0f)
+                return info;
+
             float infoShutdown = IsFissionReactor() ? CurrentSafetyOverride : shutdownTemperature;
             string sh = Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_PartInfoAdd",
                   Utils.ToSI(systemPower, "F0"),
@@ -119,11 +127,14 @@ namespace KerbalismProcess
             if (IsRunning() && CurrentPowerPercent <= 0f)
                 CurrentPowerPercent = 100f;
 
-            // Display efficiency for every ProcessControllerSystemHeat on the part (stopped = -1%)
-            Fields[nameof(ConverterOfEfficiency)].guiName = Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_Field_Efficiency", title);
-            Fields[nameof(ConverterOfEfficiency)].guiActive = true;
-            Fields[nameof(ConverterOfEfficiency)].guiActiveEditor = true;
-            SetEfficiencyPlaceholder();
+            Fields[nameof(ConverterOfEfficiency)].guiActive = systemPower > 0f;
+            Fields[nameof(ConverterOfEfficiency)].guiActiveEditor = systemPower > 0f;
+            if (systemPower > 0f)
+            {
+                // Display efficiency for every heat-producing ProcessControllerSystemHeat on the part (stopped = -1%)
+                Fields[nameof(ConverterOfEfficiency)].guiName = Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_Field_Efficiency", title);
+                SetEfficiencyPlaceholder();
+            }
 
             if (SystemHeatEditorSimulation.IsEditorScene && IsRunning())
                 SyncPlannerPseudoResource();
@@ -136,7 +147,7 @@ namespace KerbalismProcess
 
         private void InitializeDeployState()
         {
-            requiresDeploy = part.FindModuleImplementing<ModuleAnimationGroup>() != null;
+            requiresDeploy = requireDeploy && part.FindModuleImplementing<ModuleAnimationGroup>() != null;
             if (!requiresDeploy || Lib.IsEditor())
                 deployed = true;
             else
@@ -154,7 +165,17 @@ namespace KerbalismProcess
                 return;
 
             bool wasDeployed = deployed;
-            deployed = animator.isDeployed;
+            if (animator.isDeployed)
+            {
+                AdvanceDeployWait(animator);
+                deployed = IsAnimatorReadyForUse(animator);
+            }
+            else
+            {
+                waitingForDeployAnimation = false;
+                deployAnimationSettleFrames = 0;
+                deployed = false;
+            }
 
             if (wasDeployed && !deployed && running)
                 base.SetRunning(false);
@@ -166,7 +187,17 @@ namespace KerbalismProcess
                 return true;
 
             ModuleAnimationGroup animator = part.FindModuleImplementing<ModuleAnimationGroup>();
-            return animator == null || animator.isDeployed;
+            return animator == null || IsAnimatorReadyForUse(animator);
+        }
+
+        internal void MarkDeployStarted()
+        {
+            if (!DeployGateActive())
+                return;
+
+            waitingForDeployAnimation = true;
+            deployAnimationSettleFrames = DeployAnimationSettleFrames;
+            deployed = false;
         }
 
         public override string GetModuleDisplayName()
@@ -178,13 +209,47 @@ namespace KerbalismProcess
 
         private bool DeployGateActive() => requiresDeploy && !Lib.IsEditor();
 
+        private bool IsAnimatorReadyForUse(ModuleAnimationGroup animator)
+        {
+            if (animator == null)
+                return true;
+
+            if (!animator.isDeployed)
+                return false;
+
+            if (deployAnimationSettleFrames > 0)
+                return false;
+
+            return !waitingForDeployAnimation || !DeployAnimationGate.IsDeployAnimationPlaying(animator);
+        }
+
+        private void AdvanceDeployWait(ModuleAnimationGroup animator)
+        {
+            if (deployAnimationSettleFrames > 0)
+                deployAnimationSettleFrames--;
+
+            if (waitingForDeployAnimation
+                && deployAnimationSettleFrames <= 0
+                && !DeployAnimationGate.IsDeployAnimationPlaying(animator))
+                waitingForDeployAnimation = false;
+        }
+
         public new void EnableModule()
         {
-            deployed = true;
+            if (!DeployGateActive())
+                return;
+
+            ModuleAnimationGroup animator = part.FindModuleImplementing<ModuleAnimationGroup>();
+            deployed = IsAnimatorReadyForUse(animator);
         }
 
         public new void DisableModule()
         {
+            if (!DeployGateActive())
+                return;
+
+            waitingForDeployAnimation = false;
+            deployAnimationSettleFrames = 0;
             deployed = false;
             if (running)
                 base.SetRunning(false);
@@ -304,7 +369,10 @@ namespace KerbalismProcess
                     : KERBALISM.Local.ProcessController_stopped);
 
             if (Events["DumpValve"].active)
+            {
+                Events["DumpValve"].guiActive = !DeployGateActive() || IsDeployedForUse();
                 Events["DumpValve"].guiName = KERBALISM.Local.ProcessController_Dump;
+            }
         }
 
         public override void Configure(bool enable, int multiplier)
