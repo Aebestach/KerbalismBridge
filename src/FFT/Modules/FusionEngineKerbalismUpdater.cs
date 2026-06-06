@@ -53,6 +53,7 @@ namespace KerbalismFFT
 						MinThrottle = engineModule.MinimumReactorPower;
 						ParseModesList(part);
 						MaxECGeneration = modes[lastReactorModeIndex].powerGeneration;
+						FusionReactorResourceSim.SyncLoadedChargeUI(engineModule, false);
 					}
 					FirstLoad = false;
 				}
@@ -92,6 +93,16 @@ namespace KerbalismFFT
 				{
 					FusionReactorResourceSim.UpdateLoadedThrottle(engineModule);
 					FusionReactorResourceSim.ValidateLoadedReactor(engineModule, vessel);
+				}
+				else if (Lib.IsFlight())
+				{
+					bool hasPower = false;
+					if (engineModule.Charging && !engineModule.Charged)
+					{
+						ResourceInfo ec = KERBALISM.ResourceCache.GetResource(vessel, "ElectricCharge");
+						hasPower = ec.Amount >= engineModule.ChargeRate * TimeWarp.fixedDeltaTime;
+					}
+					FusionReactorResourceSim.SyncLoadedChargeUI(engineModule, hasPower);
 				}
 
 				bool plannerCharging = !engineModule.Enabled && engineModule.Charging && !engineModule.Charged;
@@ -193,7 +204,7 @@ namespace KerbalismFFT
 					if (needToStopReactor)
 					{
 						Lib.Proto.Set(reactor, "Enabled", false);
-						Lib.Proto.Set(reactor, "CurrentCharge", 0f);
+						FusionReactorResourceSim.SetProtoCharge(reactor, 0f);
 						Lib.Proto.Set(reactor, "Charged", false);
 					}
 				}

@@ -79,17 +79,18 @@ namespace KerbalismProcess
         public override string GetInfo()
         {
             string info = base.GetInfo();
-
-            int pos = info.IndexOf("\n\n");
-            if (pos < 0)
+            if (HighLogic.LoadedSceneIsFlight)
                 return info;
 
             float infoShutdown = IsFissionReactor() ? CurrentSafetyOverride : shutdownTemperature;
-            return info.Substring(0, pos) + Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_PartInfoAdd",
+            string sh = Localizer.Format("#LOC_SystemHeat_ModuleSystemHeatConverter_PartInfoAdd",
                   Utils.ToSI(systemPower, "F0"),
                   systemOutletTemperature.ToString("F0"),
                   infoShutdown.ToString("F0")
-                  ) + info.Substring(pos);
+                  );
+
+            int pos = info.IndexOf("\n\n");
+            return pos < 0 ? info + sh : info.Substring(0, pos) + sh + info.Substring(pos);
         }
 
         // Unity lifecycle: Start (no args)

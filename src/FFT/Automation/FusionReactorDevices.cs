@@ -27,7 +27,7 @@ namespace KerbalismFFT
 			{
 				reactor.Charging = false;
 				reactor.Charged = false;
-				reactor.CurrentCharge = 0f;
+				FusionReactorResourceSim.SetLoadedCharge(reactor, 0f);
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace KerbalismFFT
 			{
 				Lib.Proto.Set(protoModule, "Charging", false);
 				Lib.Proto.Set(protoModule, "Charged", false);
-				Lib.Proto.Set(protoModule, "CurrentCharge", 0f);
+				FusionReactorResourceSim.SetProtoCharge(protoModule, 0f);
 			}
 		}
 

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using FarFutureTechnologies;
 using KERBALISM;
+using KSP.Localization;
+using UnityEngine;
 
 namespace KerbalismFFT
 {
@@ -13,6 +15,12 @@ namespace KerbalismFFT
 		private static readonly FieldInfo ModesField =
 			typeof(FusionReactor).GetField("modes", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
+		private static readonly FieldInfo ChargeStateField =
+			typeof(FusionReactor).GetField("chargeState", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+		private static readonly MethodInfo SetChargeStateUIMethod =
+			typeof(FusionReactor).GetMethod("SetChargeStateUI", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
 		private static List<FusionReactorMode> GetModes(FusionReactor reactor)
 		{
 			return ModesField?.GetValue(reactor) as List<FusionReactorMode>;
@@ -23,6 +31,79 @@ namespace KerbalismFFT
 			return ReactorThrottleField != null ? (float)ReactorThrottleField.GetValue(reactor) : 1f;
 		}
 
+		private static ChargeState GetChargeState(FusionReactor reactor)
+		{
+			return ChargeStateField != null ? (ChargeState)ChargeStateField.GetValue(reactor) : ChargeState.Charging;
+		}
+
+		private static void SetChargeStateUI(FusionReactor reactor, ChargeState newState)
+		{
+			if (reactor == null || GetChargeState(reactor) == newState)
+				return;
+
+			SetChargeStateUIMethod?.Invoke(reactor, new object[] { newState });
+		}
+
+		/// <summary>
+		/// Mirror FusionReactor.RechargeCapacitors UI updates while Kerbalism owns EC draw.
+		/// </summary>
+		internal static void SyncLoadedChargeUI(FusionReactor reactor, bool powerDelivered)
+		{
+			if (reactor == null)
+				return;
+
+			if (reactor.Enabled)
+			{
+				if (GetChargeState(reactor) != ChargeState.Running)
+					SetChargeStateUI(reactor, ChargeState.Running);
+				return;
+			}
+
+			if (reactor.Charging && !reactor.Charged)
+			{
+				if (reactor.CurrentCharge >= reactor.ChargeGoal)
+				{
+					reactor.CurrentCharge = reactor.ChargeGoal;
+					reactor.Charged = true;
+					reactor.ChargeStatus = Localizer.Format("#LOC_FFT_ModuleFusionReactor_Field_ChargeStatus_Ready");
+					SetChargeStateUI(reactor, ChargeState.Ready);
+				}
+				else if (powerDelivered)
+				{
+					reactor.ChargeStatus = Localizer.Format(
+						"#LOC_FFT_ModuleFusionReactor_Field_ChargeStatus_Normal",
+						(reactor.CurrentCharge / reactor.ChargeGoal * 100.0f).ToString("F1"));
+					SetChargeStateUI(reactor, ChargeState.Charging);
+				}
+				else
+				{
+					reactor.ChargeStatus = Localizer.Format("#LOC_FFT_ModuleFusionReactor_Field_ChargeStatus_NoPower");
+					SetChargeStateUI(reactor, ChargeState.Charging);
+				}
+				return;
+			}
+
+			if (!reactor.Charging && reactor.CurrentCharge <= 0f)
+				reactor.ChargeStatus = Localizer.Format("#LOC_FFT_ModuleFusionReactor_Field_ChargeStatus_NotCharging");
+			else if (!reactor.Enabled && reactor.CurrentCharge >= reactor.ChargeGoal)
+			{
+				reactor.Charged = true;
+				reactor.ChargeStatus = Localizer.Format("#LOC_FFT_ModuleFusionReactor_Field_ChargeStatus_Ready");
+				SetChargeStateUI(reactor, ChargeState.Ready);
+			}
+		}
+
+		internal static void SetLoadedCharge(FusionReactor reactor, float charge)
+		{
+			if (reactor != null)
+				reactor.CurrentCharge = charge;
+		}
+
+		internal static void SetProtoCharge(ProtoPartModuleSnapshot reactor, float charge)
+		{
+			Lib.Proto.Set(reactor, "CurrentCharge", charge);
+		}
+
 		internal static void UpdateLoadedThrottle(FusionReactor reactor)
 		{
 			List<FusionReactorMode> modes = GetModes(reactor);
@@ -31,14 +112,14 @@ namespace KerbalismFFT
 
 			reactor.part.GetConnectedResourceTotals(PartResourceLibrary.ElectricityHashcode, out double shipEC, out double shipMaxEC, true);
 			float requestedFramePower = (float)(shipMaxEC - shipEC);
-			float clampedFramePower = UnityEngine.Mathf.Clamp(
+			float clampedFramePower = Mathf.Clamp(
 				requestedFramePower,
 				modes[reactor.currentModeIndex].powerGeneration * TimeWarp.fixedDeltaTime * reactor.MinimumReactorPower,
 				modes[reactor.currentModeIndex].powerGeneration * TimeWarp.fixedDeltaTime);
 
 			float requestedReactorThrottle = clampedFramePower / (modes[reactor.currentModeIndex].powerGeneration * TimeWarp.fixedDeltaTime);
 			float currentThrottle = GetThrottle(reactor);
-			currentThrottle = UnityEngine.Mathf.MoveTowards(currentThrottle, requestedReactorThrottle, 0.1f);
+			currentThrottle = Mathf.MoveTowards(currentThrottle, requestedReactorThrottle, 0.1f);
 			ReactorThrottleField?.SetValue(reactor, currentThrottle);
 		}
 
@@ -50,17 +131,22 @@ namespace KerbalismFFT
 			ResourceInfo ec = KERBALISM.ResourceCache.GetResource(v, "ElectricCharge");
 			double chargeRequest = reactor.ChargeRate * TimeWarp.fixedDeltaTime;
 			if (ec.Amount < chargeRequest)
+			{
+				SyncLoadedChargeUI(reactor, false);
 				return true;
+			}
 
 			ec.Consume(chargeRequest, KERBALISM.ResourceBroker.GetOrCreate(brokerName, KERBALISM.ResourceBroker.BrokerCategory.Converter, brokerTitle));
 
-			float gained = UnityEngine.Mathf.Min((float)chargeRequest, reactor.ChargeGoal - reactor.CurrentCharge);
+			float gained = Mathf.Min((float)chargeRequest, reactor.ChargeGoal - reactor.CurrentCharge);
 			reactor.CurrentCharge += gained;
 			if (reactor.CurrentCharge >= reactor.ChargeGoal)
 			{
 				reactor.CurrentCharge = reactor.ChargeGoal;
 				reactor.Charged = true;
 			}
+
+			SyncLoadedChargeUI(reactor, true);
 			return true;
 		}
 
@@ -124,10 +210,23 @@ namespace KerbalismFFT
 			{
 				if (resources.GetResource(v, input.ResourceName).Amount < double.Epsilon)
 				{
-					reactor.ReactorDeactivated();
+					StopLoadedReactorForFuel(reactor);
 					return;
 				}
 			}
+		}
+
+		internal static void StopLoadedReactorForFuel(FusionReactor reactor)
+		{
+			if (reactor == null || !reactor.Enabled)
+				return;
+
+			ScreenMessages.PostScreenMessage(new ScreenMessage(
+				Localizer.Format("#LOC_FFT_ModuleFusionReactor_Message_OutOfFuel", reactor.part.partInfo.title),
+				10.0f,
+				ScreenMessageStyle.UPPER_CENTER));
+			reactor.ReactorDeactivated();
+			SyncLoadedChargeUI(reactor, false);
 		}
 
 		internal static void BackgroundCharge(
@@ -157,12 +256,12 @@ namespace KerbalismFFT
 			currentCharge += chargeRate * (float)elapsed_s;
 			if (currentCharge >= chargeGoal)
 			{
-				Lib.Proto.Set(reactor, "CurrentCharge", chargeGoal);
+				SetProtoCharge(reactor, chargeGoal);
 				Lib.Proto.Set(reactor, "Charged", true);
 			}
 			else
 			{
-				Lib.Proto.Set(reactor, "CurrentCharge", currentCharge);
+				SetProtoCharge(reactor, currentCharge);
 			}
 		}
 
