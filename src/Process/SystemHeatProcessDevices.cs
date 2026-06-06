@@ -4,7 +4,12 @@ namespace KerbalismProcess
 {
 	public sealed class SystemHeatProcessDevice : LoadedDevice<ProcessControllerSystemHeat>
 	{
-		public SystemHeatProcessDevice(ProcessControllerSystemHeat module) : base(module) { }
+		private readonly ModuleAnimationGroup animator;
+
+		public SystemHeatProcessDevice(ProcessControllerSystemHeat module) : base(module)
+		{
+			animator = module.part.FindModuleImplementing<ModuleAnimationGroup>();
+		}
 
 		public override bool IsVisible => module.toggle;
 
@@ -12,17 +17,30 @@ namespace KerbalismProcess
 
 		public override string Tooltip => Lib.BuildString(base.Tooltip, "\n", Lib.Bold("Process capacity :"), "\n", module.ModuleInfo);
 
-		public override string Status => Lib.Color(module.IsRunning(), Local.Generic_RUNNING, Lib.Kolor.Green, Local.Generic_STOPPED, Lib.Kolor.Yellow);
+		public override string Status => !module.IsDeployedForUse()
+			? Local.Generic_notdeployed
+			: Lib.Color(module.IsRunning(), Local.Generic_RUNNING, Lib.Kolor.Green, Local.Generic_STOPPED, Lib.Kolor.Yellow);
 
-		public override void Ctrl(bool value) => module.SetRunning(value);
+		public override void Ctrl(bool value)
+		{
+			if (!module.IsDeployedForUse())
+				return;
+
+			module.SetRunning(value);
+		}
 
 		public override void Toggle() => Ctrl(!module.IsRunning());
 	}
 
 	public sealed class ProtoSystemHeatProcessDevice : ProtoDevice<ProcessControllerSystemHeat>
 	{
+		private readonly ProtoPartModuleSnapshot animator;
+
 		public ProtoSystemHeatProcessDevice(ProcessControllerSystemHeat prefab, ProtoPartSnapshot protoPart, ProtoPartModuleSnapshot protoModule)
-			: base(prefab, protoPart, protoModule) { }
+			: base(prefab, protoPart, protoModule)
+		{
+			animator = protoPart.FindModule("ModuleAnimationGroup");
+		}
 
 		public override bool IsVisible => prefab.toggle;
 
@@ -30,11 +48,28 @@ namespace KerbalismProcess
 
 		public override string Tooltip => Lib.BuildString(base.Tooltip, "\n", Lib.Bold("Process capacity :"), "\n", prefab.ModuleInfo);
 
-		public override string Status => Lib.Color(Lib.Proto.GetBool(protoModule, nameof(ProcessController.running)), Local.Generic_RUNNING, Lib.Kolor.Green, Local.Generic_STOPPED, Lib.Kolor.Yellow);
+		public override string Status
+		{
+			get
+			{
+				bool running = Lib.Proto.GetBool(protoModule, nameof(ProcessController.running));
+				return !IsProtoDeployed()
+					? Local.Generic_notdeployed
+					: Lib.Color(running, Local.Generic_RUNNING, Lib.Kolor.Green, Local.Generic_STOPPED, Lib.Kolor.Yellow);
+			}
+		}
+
+		private bool IsProtoDeployed()
+		{
+			if (animator != null)
+				return Lib.Proto.GetBool(animator, "isDeployed");
+
+			return Lib.Proto.GetBool(protoModule, "deployed");
+		}
 
 		public override void Ctrl(bool value)
 		{
-			if (Lib.Proto.GetBool(protoModule, nameof(ProcessController.broken)))
+			if (Lib.Proto.GetBool(protoModule, nameof(ProcessController.broken)) || !IsProtoDeployed())
 				return;
 
 			Lib.Proto.Set(protoModule, nameof(ProcessController.running), value);

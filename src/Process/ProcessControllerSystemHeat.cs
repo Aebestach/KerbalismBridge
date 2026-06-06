@@ -38,10 +38,17 @@ namespace KerbalismProcess
         [KSPField(isPersistant = false)] public bool AutoShutdown = true;
         [KSPField(isPersistant = false)] public bool GeneratesHeat = false;
 
+        // Set by ModuleAnimationGroup on deployable parts (e.g. Sterling preheaters).
+        [KSPField(isPersistant = true)] public bool deployed;
+
+        // Must match ModuleAnimationGroup.moduleType for deploy/retract actions (e.g. Preheater, Convector).
+        [KSPField(isPersistant = false)] public string deployModuleType = "";
+
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Efficiency: -1%", groupName = "Process", groupDisplayName = "Process Info")]
         public string ConverterOfEfficiency = "-1%";
 
         private ModuleSystemHeat heatModule;
+        private bool requiresDeploy;
 
         private double lastAppliedCapacity = -1; // Cache the last capacity we applied so we don't spam writes 
 
@@ -55,9 +62,18 @@ namespace KerbalismProcess
 
         private float EffectiveShutdownTemperature() => IsFissionReactor() ? CurrentSafetyOverride : shutdownTemperature;
 
+        internal bool RequiresDeployGate() => requiresDeploy;
+
         // Called by Harmony patch on ProcessController.SetRunning (base method is not virtual).
         internal void OnRunningChanged()
         {
+            if (DeployGateActive() && !deployed && running)
+            {
+                base.SetRunning(false);
+                if (heatModule != null)
+                    heatModule.AddFlux(resource, 0f, 0f, false);
+            }
+
             if (IsRunning() && CurrentPowerPercent <= 0f)
                 CurrentPowerPercent = 100f;
 
@@ -98,6 +114,7 @@ namespace KerbalismProcess
         {
             base.Start();
 
+            InitializeDeployState();
             heatModule = ModuleUtils.FindHeatModule(part, systemHeatModuleID);
             if (IsRunning() && CurrentPowerPercent <= 0f)
                 CurrentPowerPercent = 100f;
@@ -116,6 +133,72 @@ namespace KerbalismProcess
             if (IsFissionReactor() && (broken || CoreDamage >= 100f))
                 ApplyMeltdownState();
         }
+
+        private void InitializeDeployState()
+        {
+            requiresDeploy = part.FindModuleImplementing<ModuleAnimationGroup>() != null;
+            if (!requiresDeploy || Lib.IsEditor())
+                deployed = true;
+            else
+            {
+                SyncDeployedFromAnimator();
+                if (!deployed && running)
+                    base.SetRunning(false);
+            }
+        }
+
+        private void SyncDeployedFromAnimator()
+        {
+            ModuleAnimationGroup animator = part.FindModuleImplementing<ModuleAnimationGroup>();
+            if (animator == null)
+                return;
+
+            bool wasDeployed = deployed;
+            deployed = animator.isDeployed;
+
+            if (wasDeployed && !deployed && running)
+                base.SetRunning(false);
+        }
+
+        internal bool IsDeployedForUse()
+        {
+            if (!DeployGateActive())
+                return true;
+
+            ModuleAnimationGroup animator = part.FindModuleImplementing<ModuleAnimationGroup>();
+            return animator == null || animator.isDeployed;
+        }
+
+        public override string GetModuleDisplayName()
+        {
+            if (!string.IsNullOrEmpty(deployModuleType))
+                return deployModuleType;
+            return base.GetModuleDisplayName();
+        }
+
+        private bool DeployGateActive() => requiresDeploy && !Lib.IsEditor();
+
+        public new void EnableModule()
+        {
+            deployed = true;
+        }
+
+        public new void DisableModule()
+        {
+            deployed = false;
+            if (running)
+                base.SetRunning(false);
+
+            if (heatModule != null)
+                heatModule.AddFlux(resource, 0f, 0f, false);
+        }
+
+        public new bool ModuleIsActive()
+        {
+            return IsDeployedForUse() && !broken && running;
+        }
+
+        public new bool IsSituationValid() => true;
 
         private void SetupFissionReactorFields()
         {
@@ -189,6 +272,9 @@ namespace KerbalismProcess
         // ProcessController.Update is not virtual; without this, Toggle/Dump labels stay blank in the PAW.
         public new void Update()
         {
+            if (DeployGateActive())
+                SyncDeployedFromAnimator();
+
             // VAB/SPH: PartModule.FixedUpdate often does not run; drive SystemHeat flux from Update instead.
             if (heatModule != null)
             {
@@ -206,6 +292,11 @@ namespace KerbalismProcess
 
             if (!KERBALISM.Lib.IsPAWVisible(part))
                 return;
+
+            if (DeployGateActive())
+                Events["Toggle"].guiActive = IsDeployedForUse() && !broken;
+            else
+                Events["Toggle"].guiActive = !broken;
 
             Events["Toggle"].guiName = KERBALISM.Lib.StatusToggle(lastMultiplier + " " + title,
                 broken ? KERBALISM.Local.ProcessController_broken
