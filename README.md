@@ -4,6 +4,7 @@
 
 <img src="https://imgur.com/ON8D2wc.jpg" alt="Banner"/>
 
+</div>
 **English** · [中文](README-CN.md)
 
 Kerbalism Bridge extends **Kerbalism** to advanced power and thermal parts — reactors, converters, harvesters, capacitors, cryo tanks, and more. Those parts show up in the **Kerbalism planner**, pull from Kerbalism resource stores **in flight**, and **keep simulating on unloaded vessels** during timewarp instead of freezing at unload-time values.
