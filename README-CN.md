@@ -1,5 +1,9 @@
 # Kerbalism Bridge
 
+<div align="center">
+
+<img src="https://imgur.com/ON8D2wc.jpg" alt="Banner"/>
+
 [English](README.md) · **中文**
 
 Kerbalism Bridge 让 **Kerbalism** 能管上各类先进动力与热管理部件——反应堆、转换器、采集器、电容、低温罐等。这些部件会出现在 **Kerbalism 规划器**里，**飞行中**从 Kerbalism 资源池取料，**未加载飞船**在时间加速时仍会背景模拟，而不是停在卸载那一刻的状态。
