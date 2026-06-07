@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Build Release (optional) and pack eight KSP mod zips for GitHub Release.
+  Build Release (optional) and pack nine KSP mod zips for GitHub Release.
 
 .DESCRIPTION
   Each zip contains:
@@ -104,6 +104,12 @@ $Mods = @(
         GameDataDir  = "GameData\zKerbalismSpaceDust"
         DllName      = "zKerbalismSpaceDust.dll"
         ChangelogId  = "zKerbalismSpaceDust"
+    },
+    @{
+        Id           = "zKerbalismSterlingSystems"
+        ReleaseName  = "KerbalismSterlingSystems"
+        GameDataDir  = "GameData\zKerbalismSterlingSystems"
+        ChangelogId  = "zKerbalismSterlingSystems"
     }
 )
 
@@ -199,9 +205,15 @@ if (Test-Path $stagingRoot) {
 
 foreach ($mod in $Mods) {
     $gd = Join-Path $RepoRoot $mod.GameDataDir
-    $dll = Join-Path $gd "PluginData\$($mod.DllName)"
-    if (-not (Test-Path $dll)) {
-        throw "Missing built DLL: $dll (run Release build first)"
+    if (-not (Test-Path $gd)) {
+        throw "Missing GameData folder: $gd"
+    }
+
+    if ($mod.DllName) {
+        $dll = Join-Path $gd "PluginData\$($mod.DllName)"
+        if (-not (Test-Path $dll)) {
+            throw "Missing built DLL: $dll (run Release build first)"
+        }
     }
 
     $stage = Join-Path $stagingRoot $mod.Id

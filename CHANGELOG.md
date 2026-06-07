@@ -10,7 +10,7 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Initial **Kerbalism Bridge** release: three main DLLs (`zKerbalismBridge`, `zKerbalismProcess`, `zKerbalismNative`) plus optional satellites.
 - Process / Native architecture (Layer A / Layer B); see [docs/architecture/KerbalismBridge-Architecture-en.md](docs/architecture/KerbalismBridge-Architecture-en.md).
@@ -21,7 +21,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismBridge
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Shared runtime: Harmony bootstrap, `SystemHeatBackgroundThermal`, editor sim, `BridgeSettings`.
 - Background resource sim and optional loop thermal sim for unloaded vessels; loaded-vessel resource IO for SystemHeat radiators, converters, harvesters, fission reactors, and fission engines.
@@ -33,7 +33,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismProcess
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Layer A: `ProcessControllerSystemHeat`, `HarvesterSystemHeat`, converter / harvester / radiator Module Manager patches.
 - Stock Kerbalism plants, drills, and pumps; NFE processes; Sterling ISRU and fuel cells; FFT industrial converters and regolith scoops (with **zKerbalismFFT**).
@@ -42,11 +42,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNative
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Layer B core: `*KerbalismUpdater`, generic SystemHeat converters/harvesters, SystemHeat fission reactors and engines.
 
-### [1.0.0] - 2026-06-02
+### [1.0.0] - 2026-06-07
 
 - **Refactor:** Native is now Layer B core only. NFE / SpaceDust / FFT regolith cleanup moved to satellites.
 
@@ -54,7 +54,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNFE
 
-### [1.0.0] - 2026-06-02
+### [1.0.0] - 2026-06-07
 
 - Restored as optional satellite: NFE discharge capacitors (Layer B) and Kerbalism Automation devices.
 - NFE nuclear recycler (`nfe-nuclear-recycler-25-1`) uses Layer A via **zKerbalismProcess**; legacy `nfe-nuclear-recycler-25` patches removed.
@@ -63,7 +63,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismSpaceDust
 
-### [1.0.0] - 2026-06-02
+### [1.0.0] - 2026-06-07
 
 - New satellite: SpaceDust `ModuleSpaceDustHarvester` Layer B integration.
 - Loaded vessels: Kerbalism resource and EC routing; unloaded vessels: harvesters forced off (no background drain).
@@ -72,7 +72,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismDynamicRadiation
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Optional dynamic radiation decay for integrated SystemHeat fission and FFT fusion / static engine parts.
 - No compile-time dependency on SystemHeat or FFT assemblies; tunable `Settings.cfg`.
@@ -81,7 +81,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismCryo
 
-### [1.0.0] - 2026-06-02
+### [1.0.0] - 2026-06-07
 
 - New satellite: CryoTanks `ModuleCryoTank` and SystemHeat `ModuleSystemHeatCryoTank` Kerbalism integration (Layer B).
 - Fixes per-part background boiloff, Kerbalism EC path for active cooling, Harmony skip of duplicate `ProcessCryoTank`.
@@ -90,14 +90,24 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismFFT
 
-### [1.0.0] - 2026-06-01
+### [1.0.0] - 2026-06-07
 
 - Kerbalism integration for Far Future Technologies: antimatter tanks, fusion reactors / engines, science, reliability.
 - Loaded and unloaded vessel resource routing; optional background fusion heat bridge to `zKerbalismBridge`.
 - Kerbalism Automation; KerbalismSupport profile supplies; B9PartSwitch antimatter tank patch; industrial Process + SystemHeat patches.
 
-### [1.0.0] - 2026-06-02
+### [1.0.0] - 2026-06-07
 
 - Antimatter background: fix EC deficit vs `elapsed_s` (false detonation).
 - Settings: `Antimatter_BackgroundDetonation`, `Antimatter_DetonationGraceSeconds`, `Antimatter_MaxDetonationPerStep`.
 - CryoTanks patches moved to **zKerbalismCryo**.
+
+---
+
+## zKerbalismSterlingSystems
+
+### [1.0.0] - 2026-06-07
+
+- Optional satellite: Module Manager patches for Sterling Systems fission, converters, engines, radiators, fuel cells, and related parts.
+- Config-only (no DLL); requires **zKerbalismBridge**, **zKerbalismProcess**, and Sterling Systems.
+- Maintained in-repo; successor to SterlingSystemsKerbalism.
