@@ -21,6 +21,9 @@ KerbalismBridge/                         ← repo / solution
 └── 【Satellites · optional】
     GameData/zKerbalismFFT/              ← FFT profile / industrial Process patches / Fusion MM
     GameData/zKerbalismDynamicRadiation/ ← separate DLL: post-shutdown radiation decay
+    GameData/zKerbalismCryo/             ← CryoTanks + SH cryo tanks Layer B
+    GameData/zKerbalismNFE/              ← NFE capacitors Layer B
+    GameData/zKerbalismSpaceDust/        ← SpaceDust harvesters Layer B
 
 【External · install separately, not merged into this repo】
     SterlingSystems                      ← parts
@@ -31,7 +34,10 @@ KerbalismBridge/                         ← repo / solution
 |---------|-----|------|
 | **zKerbalismBridge** | yes | Shared runtime; no Process / Updater modules |
 | **zKerbalismProcess** | yes | Kerbalism **replacement** integration; `:NEEDS[zKerbalismBridge]`; heat patches also `:NEEDS[SystemHeat]` |
-| **zKerbalismNative** | yes | **Keep native modules** + Updaters; `:NEEDS[zKerbalismBridge]`; per-mod patches (SystemHeat, FFT, NFE, …) |
+| **zKerbalismNative** | yes | **Layer B core**: generic SH Updaters + fission; `:NEEDS[zKerbalismBridge,SystemHeat]` |
+| **zKerbalismNFE** | yes | NFE capacitors (Layer B satellite) |
+| **zKerbalismSpaceDust** | yes | SpaceDust harvesters (Layer B satellite) |
+| **zKerbalismCryo** | yes | CryoTanks / SH cryo tanks (Layer B satellite) |
 | **zKerbalismFFT** | yes | Profile, industrial Process cfg, Fusion Updater MM |
 | **zKerbalismDynamicRadiation** | yes | Optional gameplay; soft-deps on integrated reactors/engines |
 | **SterlingSystemsKerbalism** | no | Maintained by Sterling; this repo only **`ModsSupport/SterlingSystems.cfg`** for FINAL heat bridge |
@@ -45,7 +51,7 @@ Kerbalism
             └── zKerbalismNative   ←── SystemHeat / FFT / NFE … (per patch)
 ```
 
-**NFE capacitor C#** is merged into **zKerbalismNative** (no standalone zKerbalismNFE.dll). FFT industrial plants, Sterling ISRU / **fuel cells**, etc. stay **Process layer** cfg.
+**NFE, SpaceDust, Cryo** Layer B integrations live in **satellite DLLs** (`zKerbalismNFE`, `zKerbalismSpaceDust`, `zKerbalismCryo`). **zKerbalismNative** keeps only the SystemHeat generic core. FFT industrial plants, Sterling ISRU / **fuel cells**, etc. stay **Process layer** cfg.
 
 ---
 
@@ -96,10 +102,10 @@ Kerbalism
 
 **Examples:**
 
-- NFE nuclear recycler (`ModuleSystemHeatConverter` + Updater)
-- FFT fusion reactors / fusion engines (`Fusion*KerbalismUpdater`, DLL in **zKerbalismNative** / **zKerbalismFFT**)
-- NFE capacitors (`NFECapacitorKerbalismUpdater`, **zKerbalismNative**)
-- SystemHeat fission reactors / engines, SpaceDust harvesters
+- NFE nuclear recycler → **Process layer** (`ProcessControllerSystemHeat` via **zKerbalismProcess**)
+- FFT fusion reactors / fusion engines (`Fusion*KerbalismUpdater`, **zKerbalismFFT**)
+- NFE capacitors (`NFECapacitorKerbalismUpdater`, **zKerbalismNFE**)
+- SystemHeat fission reactors / engines (**zKerbalismNative**); SpaceDust harvesters (**zKerbalismSpaceDust**)
 
 ---
 
@@ -130,6 +136,9 @@ Legacy **`SystemHeatConverterKerbalism`** replaced many parts that should have s
 |----------|-----------|------|
 | zKerbalismBridge | `KerbalismBridge` | Runtime, background heat, editor sim |
 | zKerbalismProcess | `KerbalismProcess` | ProcessControllerSystemHeat, HarvesterSystemHeat |
-| zKerbalismNative | `KerbalismNative` | *KerbalismUpdater, NFE capacitors, fission Harmony |
+| zKerbalismNative | `KerbalismNative` | *KerbalismUpdater, fission Harmony |
+| zKerbalismNFE | `KerbalismNFE` | NFE capacitor Updater |
+| zKerbalismSpaceDust | `KerbalismSpaceDust` | SpaceDust harvester Updater |
+| zKerbalismCryo | `KerbalismCryo` | Cryo tank Updaters |
 
 Repository and solution: **`KerbalismBridge`** (`src/KerbalismBridge.sln`).

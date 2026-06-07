@@ -17,7 +17,7 @@ Legal text: [LICENSE](../../LICENSE)
 ## Original Aebestach mods
 
 - **zKerbalismDynamicRadiation** — optional dynamic radiation decay extension
-- **zKerbalismNative** includes NFE capacitor Kerbalism integration (no separate NFE package).
+- **zKerbalismCryo**, **zKerbalismNFE**, **zKerbalismSpaceDust** — Layer B satellites
 
 ## Runtime dependencies (not shipped)
 
@@ -27,6 +27,6 @@ their own licenses.
 
 ## Previous standalone repos
 
-Merged into this monorepo: KerbalismSystemHeat (now Bridge + Process + Native), KerbalismFFT, KerbalismNFE (merged into Native), KerbalismDynamicRadiation.
+Merged into this monorepo: KerbalismSystemHeat (now Bridge + Process + Native), KerbalismFFT, KerbalismNFE (restored as satellite), KerbalismDynamicRadiation.
 
 Legacy GameData folder names `zKerbalismSystemHeat` and `zKerbalismNFE` are **not** used by Kerbalism Bridge.

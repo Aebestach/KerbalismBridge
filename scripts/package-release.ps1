@@ -7,7 +7,7 @@
   Each zip contains:
     GameData/zKerbalismXXX/
     LICENSE
-    README.md           (from docs/mods/, monorepo header stripped)
+    README.md           (short pointer to repo + CHANGELOG)
     CHANGELOG.md        (monorepo header + this mod's section from root CHANGELOG)
 
   Output: dist/KerbalismBridge.v<Version>.zip (Version is manual, e.g. 1.0.0-beta.1)
@@ -49,7 +49,6 @@ $Mods = @(
         ReleaseName  = "KerbalismBridge"
         GameDataDir  = "GameData\zKerbalismBridge"
         DllName      = "zKerbalismBridge.dll"
-        ReadmeSource = "docs\mods\KerbalismBridge.md"
         ChangelogId  = "zKerbalismBridge"
     },
     @{
@@ -57,7 +56,6 @@ $Mods = @(
         ReleaseName  = "KerbalismProcess"
         GameDataDir  = "GameData\zKerbalismProcess"
         DllName      = "zKerbalismProcess.dll"
-        ReadmeSource = "docs\mods\KerbalismBridge.md"
         ChangelogId  = "zKerbalismProcess"
     },
     @{
@@ -65,7 +63,6 @@ $Mods = @(
         ReleaseName  = "KerbalismNative"
         GameDataDir  = "GameData\zKerbalismNative"
         DllName      = "zKerbalismNative.dll"
-        ReadmeSource = "docs\mods\KerbalismBridge.md"
         ChangelogId  = "zKerbalismNative"
     },
     @{
@@ -73,7 +70,6 @@ $Mods = @(
         ReleaseName  = "KerbalismFFT"
         GameDataDir  = "GameData\zKerbalismFFT"
         DllName      = "zKerbalismFFT.dll"
-        ReadmeSource = "docs\mods\zKerbalismFFT.md"
         ChangelogId  = "zKerbalismFFT"
     },
     @{
@@ -81,7 +77,6 @@ $Mods = @(
         ReleaseName  = "KerbalismDynamicRadiation"
         GameDataDir  = "GameData\zKerbalismDynamicRadiation"
         DllName      = "zKerbalismDynamicRadiation.dll"
-        ReadmeSource = "docs\mods\zKerbalismDynamicRadiation.md"
         ChangelogId  = "zKerbalismDynamicRadiation"
     },
     @{
@@ -89,7 +84,6 @@ $Mods = @(
         ReleaseName  = "KerbalismCryo"
         GameDataDir  = "GameData\zKerbalismCryo"
         DllName      = "zKerbalismCryo.dll"
-        ReadmeSource = "docs\mods\zKerbalismCryo.md"
         ChangelogId  = "zKerbalismCryo"
     },
     @{
@@ -97,7 +91,6 @@ $Mods = @(
         ReleaseName  = "KerbalismNFE"
         GameDataDir  = "GameData\zKerbalismNFE"
         DllName      = "zKerbalismNFE.dll"
-        ReadmeSource = "docs\mods\zKerbalismNFE.md"
         ChangelogId  = "zKerbalismNFE"
     },
     @{
@@ -105,7 +98,6 @@ $Mods = @(
         ReleaseName  = "KerbalismSpaceDust"
         GameDataDir  = "GameData\zKerbalismSpaceDust"
         DllName      = "zKerbalismSpaceDust.dll"
-        ReadmeSource = "docs\mods\zKerbalismSpaceDust.md"
         ChangelogId  = "zKerbalismSpaceDust"
     }
 )
@@ -163,13 +155,23 @@ function Get-ModChangelog {
 }
 
 function Get-ModReadme {
-    param([string] $SourcePath)
+    param(
+        [string] $ModId,
+        [string] $ReleaseName
+    )
 
-    $text = Get-Content -LiteralPath $SourcePath -Raw
-    $text = $text -replace '(?m)^> Part of \[Kerbalism Bridge\].*\r?\n', ''
-    $text = $text -replace '(?m)^> Part of \[Kerbalism Bridge\].*\r?\n', ''
-    $text = $text -replace '\]\(\.\./\.\./LICENSE\)', '](LICENSE)'
-    return $text.TrimStart() + "`r`n"
+    return @"
+# $ReleaseName
+
+Part of [Kerbalism Bridge](https://github.com/Aebestach/KerbalismBridge) (`$ModId`).
+
+**Version:** $VersionLabel
+
+Features, dependencies, settings, and install notes: see **CHANGELOG.md** in this archive.
+
+Full repository: https://github.com/Aebestach/KerbalismBridge
+
+"@
 }
 
 if (-not $SkipBuild) {
@@ -204,7 +206,7 @@ foreach ($mod in $Mods) {
 
     Copy-Item -LiteralPath (Join-Path $RepoRoot "LICENSE") -Destination (Join-Path $stage "LICENSE")
 
-    $readme = Get-ModReadme -SourcePath (Join-Path $RepoRoot $mod.ReadmeSource)
+    $readme = Get-ModReadme -ModId $mod.Id -ReleaseName $mod.ReleaseName
     Set-Content -LiteralPath (Join-Path $stage "README.md") -Value $readme -NoNewline
 
     $changelogModId = if ($mod.ChangelogId) { $mod.ChangelogId } else { $mod.Id }

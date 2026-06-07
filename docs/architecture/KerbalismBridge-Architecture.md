@@ -102,8 +102,8 @@ Kerbalism
 
 **例子：**
 
-- NFE 核回收机（`ModuleSystemHeatConverter` + Updater）
-- FFT 聚变堆 / 聚变发动机（`Fusion*KerbalismUpdater`，DLL 在 **zKerbalismNative** / **zKerbalismFFT**）
+- NFE 核回收机 → **Process 层**（**zKerbalismProcess** 的 `ProcessControllerSystemHeat`）
+- FFT 聚变堆 / 聚变发动机（`Fusion*KerbalismUpdater`，**zKerbalismFFT**）
 - NFE 电容（`NFECapacitorKerbalismUpdater`，**zKerbalismNFE**）
 - SystemHeat 裂变堆 / 发动机（**zKerbalismNative**）
 - SpaceDust 采集（**zKerbalismSpaceDust**）
@@ -137,6 +137,9 @@ Kerbalism
 |--------|----------|------|
 | zKerbalismBridge | `KerbalismBridge` | 运行时、背景热、编辑器仿真 |
 | zKerbalismProcess | `KerbalismProcess` | ProcessControllerSystemHeat、HarvesterSystemHeat |
-| zKerbalismNative | `KerbalismNative` | *KerbalismUpdater、NFE 电容、裂变 Harmony |
+| zKerbalismNative | `KerbalismNative` | *KerbalismUpdater、裂变 Harmony |
+| zKerbalismNFE | `KerbalismNFE` | NFE 电容 Updater |
+| zKerbalismSpaceDust | `KerbalismSpaceDust` | SpaceDust 采集 Updater |
+| zKerbalismCryo | `KerbalismCryo` | 低温罐 Updater |
 
 仓库与解决方案：**`KerbalismBridge`**（`src/KerbalismBridge.sln`）。
