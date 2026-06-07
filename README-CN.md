@@ -63,8 +63,7 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 | `zKerbalismCryo` | CryoTanks + SystemHeat 低温罐 |
 | `zKerbalismNFE` | Near Future Electrical — 放电电容 |
 | `zKerbalismSpaceDust` | SpaceDust 采集器 |
-
-**SterlingSystemsKerbalism** 由 Sterling Systems 维护；本仓库仅在 Process 层提供 `SterlingSystems.cfg` 作为 FINAL 热桥。
+| `zKerbalismSterlingSystems` | Sterling Systems — 裂变、转换器、发动机等（现由本仓库维护；感谢 [JadeOfMaar](https://github.com/JadeOfMaar)、[NerdyBoy](https://github.com/NerdyBoy709) 此前对 SterlingSystemsKerbalism 的编写） |
 
 ---
 
@@ -83,7 +82,7 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 1. 安装 Kerbalism、Module Manager 与 **zKerbalismPluginHost**。
 2. 删除旧版 `GameData/zKerbalismSystemHeat` 以及 `Plugins/` 里任何 Bridge DLL 副本。若从旧版 Bridge 升级，请安装新的 **`zKerbalismNFE`** 卫星（NFE 电容不再随 Native 内置）。
 3. 将 **`zKerbalismBridge` + `zKerbalismProcess` + `zKerbalismNative`** 复制到 `GameData`（主桥最低配置）。
-4. 按需安装卫星：`zKerbalismFFT`、`zKerbalismNFE`、`zKerbalismSpaceDust`、`zKerbalismCryo`、`zKerbalismDynamicRadiation` 等。
+4. 按需安装卫星：`zKerbalismFFT`、`zKerbalismNFE`、`zKerbalismSpaceDust`、`zKerbalismCryo`、`zKerbalismDynamicRadiation`、`zKerbalismSterlingSystems` 等。
 5. 删除 `ModuleManager.ConfigCache` 并重启 KSP。
 
 ---

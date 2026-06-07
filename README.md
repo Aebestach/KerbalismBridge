@@ -63,8 +63,7 @@ Bridge does **not** use one integration style for every part. Pick **one** layer
 | `zKerbalismCryo` | CryoTanks + SystemHeat cryogenic tanks |
 | `zKerbalismNFE` | Near Future Electrical — discharge capacitors |
 | `zKerbalismSpaceDust` | SpaceDust harvesters |
-
-**SterlingSystemsKerbalism** is maintained by Sterling Systems; this repo only ships `SterlingSystems.cfg` as the FINAL heat bridge under Process.
+| `zKerbalismSterlingSystems` | Sterling Systems — fission, converters, engines, and more (now maintained here; thanks to [JadeOfMaar](https://github.com/JadeOfMaar) and [NerdyBoy](https://github.com/NerdyBoy709) for their earlier work on SterlingSystemsKerbalism) |
 
 ---
 
@@ -83,7 +82,7 @@ Bridge does **not** use one integration style for every part. Pick **one** layer
 1. Install Kerbalism, Module Manager, and **zKerbalismPluginHost**.
 2. Remove legacy `GameData/zKerbalismSystemHeat` and any old `Plugins/` copies of Bridge DLLs. If upgrading from pre-1.0 Bridge, install the new **`zKerbalismNFE`** satellite for NFE capacitors.
 3. Copy **`zKerbalismBridge` + `zKerbalismProcess` + `zKerbalismNative`** into `GameData` (minimum bridge).
-4. Add satellites as needed (`zKerbalismFFT`, `zKerbalismNFE`, `zKerbalismSpaceDust`, `zKerbalismCryo`, `zKerbalismDynamicRadiation`).
+4. Add satellites as needed (`zKerbalismFFT`, `zKerbalismNFE`, `zKerbalismSpaceDust`, `zKerbalismCryo`, `zKerbalismDynamicRadiation`, `zKerbalismSterlingSystems`).
 5. Delete `ModuleManager.ConfigCache` and restart KSP.
 
 ---
