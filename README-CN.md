@@ -1,6 +1,10 @@
 # Kerbalism Bridge
 
-**Kerbalism Bridge** 将 Kerbalism 与 **SystemHeat**、**Near Future Electrical**、**Far Future Technologies** 以及可选的**动态辐射**整合在一起。本仓库一次构建多个可安装的 `GameData` 包：**主桥**（三个 DLL）与按需添加的**卫星** mod。
+[English](README.md) · **中文**
+
+Kerbalism Bridge 让 **Kerbalism** 能管上各类先进动力与热管理部件——反应堆、转换器、采集器、电容、低温罐等。这些部件会出现在 **Kerbalism 规划器**里，**飞行中**从 Kerbalism 资源池取料，**未加载飞船**在时间加速时仍会背景模拟，而不是停在卸载那一刻的状态。
+
+发布包拆成多个可选的 `GameData` 目录：**主桥**（SystemHeat 最低需求）与按需安装的**卫星** mod。
 
 ---
 
@@ -90,7 +94,6 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 
 | 路径 | 用途 |
 |------|------|
-| [README.md](README.md) | English overview |
 | [CHANGELOG.md](CHANGELOG.md) | 各包功能、依赖、设置与版本历史 |
 | [docs/DEVELOPER-CN.md](docs/DEVELOPER-CN.md) | 编译、发布与架构（开发者） |
 | [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md) | Fork 与版权说明 |

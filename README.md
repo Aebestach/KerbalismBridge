@@ -1,6 +1,10 @@
 # Kerbalism Bridge
 
-**Kerbalism Bridge** integrates Kerbalism with **SystemHeat**, **Near Future Electrical**, **Far Future Technologies**, and optional **dynamic radiation**. One repository builds several installable `GameData` packages: a **main bridge** (three DLLs) plus **satellite** mods you can add as needed.
+**English** · [中文](README-CN.md)
+
+Kerbalism Bridge extends **Kerbalism** to advanced power and thermal parts — reactors, converters, harvesters, capacitors, cryo tanks, and more. Those parts show up in the **Kerbalism planner**, pull from Kerbalism resource stores **in flight**, and **keep simulating on unloaded vessels** during timewarp instead of freezing at unload-time values.
+
+The download ships as several optional `GameData` packages: a **main bridge** (minimum for SystemHeat) plus **satellite** mods you add only when you need them.
 
 ---
 
@@ -90,7 +94,6 @@ Per-package dependencies (SystemHeat, FFT, NFE, …): [CHANGELOG.md](CHANGELOG.m
 
 | Path | Purpose |
 |------|---------|
-| [README-CN.md](README-CN.md) | 中文版说明 |
 | [CHANGELOG.md](CHANGELOG.md) | Per-package features, dependencies, settings, version history |
 | [docs/DEVELOPER.md](docs/DEVELOPER.md) | Build, release, and architecture (developers) |
 | [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md) | Fork and copyright notices |
