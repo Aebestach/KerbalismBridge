@@ -48,7 +48,7 @@ namespace KerbalismProcess
 		private static bool IsSwitchableProcess(string resource)
 		{
 			return !string.IsNullOrEmpty(resource) &&
-			       (resource.StartsWith("_MAEC") || resource.StartsWith("_Convector"));
+			       (resource.StartsWith("_MAEC") || resource.StartsWith("_Convector") || resource.StartsWith("_STH1TEC"));
 		}
 	}
 }
