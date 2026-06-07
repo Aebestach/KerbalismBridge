@@ -99,6 +99,6 @@ scripts\package-release.cmd -Version 1.0.0 -SkipBuild
 
 | 路径 | 用途 |
 |------|------|
-| [../CHANGELOG.md](../CHANGELOG.md) | 各包功能、依赖、设置与版本历史 |
+| [../CHANGELOG.md](../CHANGELOG.md) | 版本历史 |
 | [legal/ATTRIBUTION.md](legal/ATTRIBUTION.md) | Fork 与版权说明 |
 | [../LICENSE](../LICENSE) | MIT 许可全文 |

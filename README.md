@@ -26,7 +26,7 @@ This project continues the work of [judicator/KerbalismSystemHeat](https://githu
 - **Fusion waste heat** in Bridge background thermal sim when the main bridge is installed.
 - **CryoTanks** moved to a separate **zKerbalismCryo** satellite for clearer maintenance.
 
-Per-package features, dependencies, settings, and install notes: [CHANGELOG.md](CHANGELOG.md).
+Version history: [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -76,8 +76,6 @@ Bridge does **not** use one integration style for every part. Pick **one** layer
 | [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | Deferred loader for Bridge DLLs |
 | [Module Manager](https://github.com/sarbian/ModuleManager) | Patches |
 
-Per-package dependencies (SystemHeat, FFT, NFE, …): [CHANGELOG.md](CHANGELOG.md).
-
 ---
 
 ## Installation
@@ -90,11 +88,24 @@ Per-package dependencies (SystemHeat, FFT, NFE, …): [CHANGELOG.md](CHANGELOG.m
 
 ---
 
+## Settings
+
+Tunable defaults live in each package's `Settings.cfg`:
+
+| File | Notable keys |
+|------|--------------|
+| `zKerbalismBridge/Settings.cfg` | `BackgroundThermalSim`, `BackgroundRadiatorCoefficient` |
+| `zKerbalismDynamicRadiation/Settings.cfg` | `Reactor_*` / `Engine_*` min emission and decay rates |
+| `zKerbalismCryo/Settings.cfg` | `Enabled` |
+| `zKerbalismFFT/Settings.cfg` | Antimatter background detonation; FFT radioactivity coefficients |
+
+---
+
 ## Documentation
 
 | Path | Purpose |
 |------|---------|
-| [CHANGELOG.md](CHANGELOG.md) | Per-package features, dependencies, settings, version history |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [docs/DEVELOPER.md](docs/DEVELOPER.md) | Build, release, and architecture (developers) |
 | [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md) | Fork and copyright notices |
 

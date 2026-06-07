@@ -99,6 +99,6 @@ On success the console prints `Created KerbalismBridge.v...zip` lines and `Done.
 
 | Path | Purpose |
 |------|---------|
-| [../CHANGELOG.md](../CHANGELOG.md) | Per-package features, dependencies, settings, version history |
+| [../CHANGELOG.md](../CHANGELOG.md) | Version history |
 | [legal/ATTRIBUTION.md](legal/ATTRIBUTION.md) | Fork and copyright notices |
 | [../LICENSE](../LICENSE) | MIT license text |

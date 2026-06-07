@@ -26,7 +26,7 @@ Kerbalism Bridge 让 **Kerbalism** 能管上各类先进动力与热管理部件
 - 安装主桥时，聚变废热纳入 Bridge **背景热模拟**。
 - **CryoTanks** 整合拆到独立卫星 **zKerbalismCryo**，便于维护。
 
-各安装包的功能、依赖、设置与安装说明见 [CHANGELOG.md](CHANGELOG.md)。
+版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 
@@ -76,8 +76,6 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 | [zKerbalismPluginHost](https://github.com/Aebestach/KerbalismPluginHost) | Bridge DLL 延迟加载 |
 | [Module Manager](https://github.com/sarbian/ModuleManager) | 补丁 |
 
-各包额外依赖（SystemHeat、FFT、NFE 等）：[CHANGELOG.md](CHANGELOG.md)。
-
 ---
 
 ## 安装步骤
@@ -90,11 +88,24 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 
 ---
 
+## 设置
+
+可调默认值在各包的 `Settings.cfg` 中：
+
+| 文件 | 主要项 |
+|------|--------|
+| `zKerbalismBridge/Settings.cfg` | `BackgroundThermalSim`、`BackgroundRadiatorCoefficient` |
+| `zKerbalismDynamicRadiation/Settings.cfg` | `Reactor_*` / `Engine_*` 最低辐射与衰减率 |
+| `zKerbalismCryo/Settings.cfg` | `Enabled` |
+| `zKerbalismFFT/Settings.cfg` | 反物质背景湮灭；FFT 辐射系数 |
+
+---
+
 ## 文档
 
 | 路径 | 用途 |
 |------|------|
-| [CHANGELOG.md](CHANGELOG.md) | 各包功能、依赖、设置与版本历史 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
 | [docs/DEVELOPER-CN.md](docs/DEVELOPER-CN.md) | 编译、发布与架构（开发者） |
 | [docs/legal/ATTRIBUTION.md](docs/legal/ATTRIBUTION.md) | Fork 与版权说明 |
 

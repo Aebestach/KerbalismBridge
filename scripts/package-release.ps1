@@ -172,7 +172,7 @@ Part of [Kerbalism Bridge](https://github.com/Aebestach/KerbalismBridge) (`$ModI
 
 **Version:** $VersionLabel
 
-Features, dependencies, settings, and install notes: see **CHANGELOG.md** in this archive.
+Features, dependencies, settings, and install notes: see the repository [README.md](https://github.com/Aebestach/KerbalismBridge/blob/master/README.md). Version history: **CHANGELOG.md** in this archive.
 
 Full repository: https://github.com/Aebestach/KerbalismBridge
 

@@ -7,7 +7,7 @@
 | [legal/ATTRIBUTION.md](legal/ATTRIBUTION.md) | Fork and copyright notices |
 
 Repository overview: [../README.md](../README.md) · 中文: [../README-CN.md](../README-CN.md)  
-Per-package features, dependencies, and version history: [../CHANGELOG.md](../CHANGELOG.md)
+Version history: [../CHANGELOG.md](../CHANGELOG.md)
 
 ## Architecture
 
