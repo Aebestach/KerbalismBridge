@@ -44,13 +44,54 @@ Integration uses **Layer A (Process)** and **Layer B (Native)**. Full design rul
 
 ## Release packaging
 
+Scripts live under `scripts/`. Run from the **repository root** (the script resolves the repo from its own path, but the examples below assume the current directory is the root).
+
+| File | Purpose |
+|------|---------|
+| `scripts/package-release.ps1` | PowerShell entry point |
+| `scripts/package-release.cmd` | CMD entry point (calls the `.ps1` script) |
+
+**Note:** CMD **cannot** run `.ps1` files directly. Windows usually opens them in an editor instead of executing them. Use `package-release.cmd` from CMD.
+
+### PowerShell
+
 ```powershell
+cd path\to\KerbalismBridge
 .\scripts\package-release.ps1 -Version 1.0.0
+.\scripts\package-release.ps1 -Version 1.0.0-beta.1 -SkipBuild
 ```
 
-Produces eight zips under `dist/`: **KerbalismBridge**, **KerbalismProcess**, **KerbalismNative**, **KerbalismFFT**, **KerbalismDynamicRadiation**, **KerbalismCryo**, **KerbalismNFE**, **KerbalismSpaceDust**. Each zip contains `GameData/`, `LICENSE`, `README.md` (pointer), and a per-mod `CHANGELOG.md` excerpt from the root [CHANGELOG.md](../CHANGELOG.md).
+If execution is blocked, allow scripts for the current window only:
 
-Use `-SkipBuild` when DLLs are already built.
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+### CMD
+
+```text
+cd /d path\to\KerbalismBridge
+scripts\package-release.cmd -Version 1.0.0
+scripts\package-release.cmd -Version 1.0.0 -SkipBuild
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `-Version` | yes | Release label, e.g. `1.0.0`, `1.0.0-beta.1`, or `v1.0.0` |
+| `-SkipBuild` | no | Skip MSBuild; requires DLLs already under `GameData/.../PluginData/` |
+| `-OutputDir` | no | Output folder (default `dist`) |
+
+By default the script builds `src\KerbalismBridge.sln` in **Release** (Visual Studio or Build Tools with MSBuild required). With `-SkipBuild`, it only packs existing DLLs.
+
+### Output
+
+Produces eight zips under `dist/`: **KerbalismBridge**, **KerbalismProcess**, **KerbalismNative**, **KerbalismFFT**, **KerbalismDynamicRadiation**, **KerbalismCryo**, **KerbalismNFE**, **KerbalismSpaceDust** (names like `KerbalismBridge.v1.0.0.zip`).
+
+Each zip contains `GameData/`, `LICENSE`, a short `README.md`, and a per-mod `CHANGELOG.md` excerpt from the root [CHANGELOG.md](../CHANGELOG.md).
+
+On success the console prints `Created KerbalismBridge.v...zip` lines and `Done. Packages in: ...\dist`.
 
 ---
 

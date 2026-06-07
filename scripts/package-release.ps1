@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Build Release (optional) and pack six KSP mod zips for GitHub Release.
+  Build Release (optional) and pack eight KSP mod zips for GitHub Release.
 
 .DESCRIPTION
   Each zip contains:
@@ -12,8 +12,13 @@
 
   Output: dist/KerbalismBridge.v<Version>.zip (Version is manual, e.g. 1.0.0-beta.1)
 
+  Run from PowerShell, or from CMD use package-release.cmd (CMD opens .ps1 in an editor).
+
 .EXAMPLE
   .\scripts\package-release.ps1 -Version 1.0.0
+
+.EXAMPLE
+  .\scripts\package-release.cmd -Version 1.0.0 -SkipBuild
 
 .EXAMPLE
   .\scripts\package-release.ps1 -Version 1.0.0-beta.1 -SkipBuild
