@@ -2,8 +2,6 @@
 
 **Kerbalism Bridge** integrates Kerbalism with **SystemHeat**, **Near Future Electrical**, **Far Future Technologies**, and optional **dynamic radiation**. One repository builds several installable `GameData` packages: a **main bridge** (three DLLs) plus **satellite** mods you can add as needed.
 
-**Version:** 1.0.0
-
 ---
 
 ## Lineage and improvements

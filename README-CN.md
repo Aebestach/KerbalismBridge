@@ -2,8 +2,6 @@
 
 **Kerbalism Bridge** 将 Kerbalism 与 **SystemHeat**、**Near Future Electrical**、**Far Future Technologies** 以及可选的**动态辐射**整合在一起。本仓库一次构建多个可安装的 `GameData` 包：**主桥**（三个 DLL）与按需添加的**卫星** mod。
 
-**版本：** 1.0.0
-
 ---
 
 ## 传承与改进
