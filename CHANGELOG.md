@@ -10,6 +10,10 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.1] - 2026-06-08
+
+- Maintenance release: fix TweakScale-scaled SystemHeat radiators losing all heat rejection (**zKerbalismNative**).
+
 ### [1.0.0] - 2026-06-07
 
 - Initial **Kerbalism Bridge** release: three main DLLs (`zKerbalismBridge`, `zKerbalismProcess`, `zKerbalismNative`) plus optional satellites.
@@ -42,12 +46,15 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNative
 
+### [1.0.1] - 2026-06-08
+
+- **Fix:** `SystemHeatRadiatorKerbalism.OnPartScaleChanged` no longer wipes `temperatureCurve` when TweakScale rescales a radiator; heat rejection is rebuilt from the part prefab curve using the absolute scale factor.
+- **Fix:** background EC scaling for scaled radiators reads `scaleEmissionPower` (was `scaleECConsumptionPower`).
+- Scaled radiators reload with a valid curve in `OnStart` when `scale != 1`.
+
 ### [1.0.0] - 2026-06-07
 
 - Layer B core: `*KerbalismUpdater`, generic SystemHeat converters/harvesters, SystemHeat fission reactors and engines.
-
-### [1.0.0] - 2026-06-07
-
 - **Refactor:** Native is now Layer B core only. NFE / SpaceDust / FFT regolith cleanup moved to satellites.
 
 ---
