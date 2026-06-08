@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using KSP.Localization;
 using KERBALISM;
 using SystemHeat;
@@ -19,10 +20,60 @@ namespace KerbalismNative
 
 		public List<ModuleResource> inputResourcesClone;
 
+		FloatCurve baseTemperatureCurve;
+
 		public override void OnLoad(ConfigNode node)
 		{
 			base.OnLoad(node);
 			inputResourcesClone = resHandler.inputResources.ConvertAll(p => p);
+			EnsureBaseTemperatureCurve();
+		}
+
+		public override void OnStart(StartState state)
+		{
+			base.OnStart(state);
+			EnsureBaseTemperatureCurve();
+			if (scale != 1f)
+				RebuildTemperatureCurve();
+		}
+
+		void EnsureBaseTemperatureCurve()
+		{
+			if (baseTemperatureCurve != null && baseTemperatureCurve.Curve.length > 0)
+				return;
+
+			ModuleSystemHeatRadiator prefabRadiator = part.partInfo.partPrefab.FindModuleImplementing<ModuleSystemHeatRadiator>();
+			FloatCurve source = prefabRadiator != null ? prefabRadiator.temperatureCurve : temperatureCurve;
+			baseTemperatureCurve = CloneCurve(source);
+		}
+
+		static FloatCurve CloneCurve(FloatCurve source)
+		{
+			FloatCurve clone = new FloatCurve();
+			if (source == null)
+				return clone;
+
+			for (int i = 0; i < source.Curve.length; i++)
+			{
+				Keyframe key = source.Curve.keys[i];
+				clone.Add(key.time, key.value);
+			}
+			return clone;
+		}
+
+		void RebuildTemperatureCurve()
+		{
+			EnsureBaseTemperatureCurve();
+			if (baseTemperatureCurve.Curve.length == 0)
+				return;
+
+			temperatureCurve = new FloatCurve();
+			float scaleFactor = (float)Math.Pow(scale, scaleEmissionPower);
+			for (int i = 0; i < baseTemperatureCurve.Curve.length; i++)
+			{
+				Keyframe key = baseTemperatureCurve.Curve.keys[i];
+				temperatureCurve.Add(key.time, key.value * scaleFactor);
+			}
 		}
 
 		// Tweakscale support
@@ -30,11 +81,7 @@ namespace KerbalismNative
 		void OnPartScaleChanged(BaseEventDetails data)
 		{
 			scale = data.Get<float>("factorAbsolute");
-			temperatureCurve = new FloatCurve();
-			for (int i = 0; i < temperatureCurve.Curve.length; i++)
-			{
-				temperatureCurve.Add(temperatureCurve.Curve.keys[i].time, temperatureCurve.Curve.keys[i].value * (float) Math.Pow(scale, scaleEmissionPower));
-			}
+			RebuildTemperatureCurve();
 		}
 
 		// Estimate resources production/consumption for Kerbalism planner
@@ -57,7 +104,7 @@ namespace KerbalismNative
 			if (Lib.Proto.GetBool(module_snapshot, "IsCooling"))
 			{
 				float scale = Lib.Proto.GetFloat(module_snapshot, "scale");
-				float scaleEmissionPower = Lib.Proto.GetFloat(module_snapshot, "scaleECConsumptionPower");
+				float scaleEmissionPower = Lib.Proto.GetFloat(module_snapshot, "scaleEmissionPower");
 				foreach (ModuleResource res in ((proto_part_module as SystemHeatRadiatorKerbalism).resHandler.inputResources))
 				{
 					resourceChangeRequest.Add(new KeyValuePair<string, double>(res.name, -res.rate * Math.Pow(scale, scaleEmissionPower)));
