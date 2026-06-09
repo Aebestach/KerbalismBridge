@@ -75,6 +75,7 @@
     <Compile Include="ProcessControllerB9ResourceSync.cs" />
     <Compile Include="ProcessControllerDeployable.cs" />
     <Compile Include="ProcessControllerSystemHeat.cs" />
+    <Compile Include="ProcessControllerUiHelper.cs" />
     <Compile Include="ProcessHarmonyPatches.cs" />
     <Compile Include="ProfilePostLoadPatch.cs" />
     <Compile Include="SystemHeatProcessDevices.cs" />

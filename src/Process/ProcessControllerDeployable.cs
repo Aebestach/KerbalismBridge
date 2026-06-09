@@ -167,7 +167,7 @@ namespace KerbalismProcess
 			if (Events["DumpValve"].active)
 			{
 				Events["DumpValve"].guiActive = !DeployGateActive() || IsDeployedForUse();
-				Events["DumpValve"].guiName = Local.ProcessController_Dump;
+				ProcessControllerUiHelper.RefreshDumpValveLabel(this);
 			}
 		}
 	}
