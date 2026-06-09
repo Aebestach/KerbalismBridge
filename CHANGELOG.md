@@ -10,6 +10,12 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.2] - 2026-06-08
+
+- Fix FFT regolith scoop Kerbalism harvester balance (**zKerbalismFFT**): preserve FFT `HarvestThreshold`, `Efficiency`, and thermal params instead of generic drill thresholds/rates.
+- **Fix:** restore Kerbalism dump-valve status text on Layer A converters and reactors (**zKerbalismProcess**); PAW again shows which outputs are vented (e.g. `Dump: Nothing`, `Dump: Oxygen`).
+- **Fix:** restore manual fission-reactor power throttle in PAW for NFE Layer A reactors (**zKerbalismProcess**); `CurrentPowerPercent` slider drives EC, waste heat, and Planner while running.
+
 ### [1.0.1] - 2026-06-08
 
 - Maintenance release: fix TweakScale-scaled SystemHeat radiators losing all heat rejection (**zKerbalismNative**).
@@ -36,6 +42,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismProcess
+
+### [1.0.2] - 2026-06-08
+
+- **Fix:** `ProcessControllerSystemHeat` and `ProcessControllerDeployable` PAW dump button shows active valve title again (`ProcessControllerUiHelper`); matches stock Kerbalism `Dump: <mode>` labeling.
+- **Fix:** NFE `ProcessControllerSystemHeat` fission reactors (`_Nukereactor`) expose `CurrentPowerPercent` throttle slider in the fission-reactor PAW group; respects per-part `MinimumThrottle` and updates Kerbalism pseudo-resource throughput plus SystemHeat flux.
 
 ### [1.0.0] - 2026-06-07
 
@@ -97,14 +108,15 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismFFT
 
+### [1.0.2] - 2026-06-08
+
+- **Fix:** `FFT_Regoliths_SystemHeat.cfg` maps FFT `HarvestThreshold` → `min_abundance`, `Efficiency` → `rate`, and sets `abundance_rate = 1`; inherits `systemPower` and loop temperature limits from the stock FFT harvester. Restores trace-resource harvesting (e.g. Mun LqdHe3) blocked by the previous 2% drill threshold and nerfed `0.0025` rate template.
+
 ### [1.0.0] - 2026-06-07
 
 - Kerbalism integration for Far Future Technologies: antimatter tanks, fusion reactors / engines, science, reliability.
 - Loaded and unloaded vessel resource routing; optional background fusion heat bridge to `zKerbalismBridge`.
 - Kerbalism Automation; KerbalismSupport profile supplies; B9PartSwitch antimatter tank patch; industrial Process + SystemHeat patches.
-
-### [1.0.0] - 2026-06-07
-
 - Antimatter background: fix EC deficit vs `elapsed_s` (false detonation).
 - Settings: `Antimatter_BackgroundDetonation`, `Antimatter_DetonationGraceSeconds`, `Antimatter_MaxDetonationPerStep`.
 - CryoTanks patches moved to **zKerbalismCryo**.

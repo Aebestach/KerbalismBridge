@@ -16,7 +16,8 @@ namespace KerbalismProcess
         [KSPField(isPersistant = false)] public float shutdownTemperature = 1000f;      // K; converters and non-fission processes
         [KSPField(isPersistant = false)] public float systemOutletTemperature = 1000f;  // K
         [KSPField(isPersistant = false)] public float systemPower = 0f;               // kW at full load
-        [KSPField(isPersistant = true)] public float CurrentPowerPercent = 100f;      // reactor power, 0-100%
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KerbalismBridge_FissionReactor_CurrentPowerPercent", groupName = "fissionreactor", groupDisplayName = "#LOC_SystemHeat_ModuleSystemHeatFissionReactor_UIGroup_Title"), UI_FloatRange(scene = UI_Scene.All, minValue = 0f, maxValue = 100f, stepIncrement = 1f)]
+        public float CurrentPowerPercent = 100f;      // reactor power, 0-100%
         [KSPField(isPersistant = false)] public float MinimumThrottle = 10f;          // minimum non-zero reactor power, %
         [KSPField(isPersistant = false)] public float meltdownTemperature = 0f;       // K; CriticalTemperature; 0 disables core damage
         [KSPField(isPersistant = false)] public float MaximumTemperature = 2000f;   // K; PAW range cap for safety override
@@ -57,6 +58,7 @@ namespace KerbalismProcess
         private double lastAppliedCapacity = -1; // Cache the last capacity we applied so we don't spam writes 
 
         private double configuredCapacity = -1; // Cache Kerbalism's "100%" capacity after Configure()
+        private float lastUiPowerPercent = -1f;
         private const int DeployAnimationSettleFrames = 2;
 
         public string ReactorPowerStatus => IsRunning() ? CurrentPowerPercent.ToString("0.#") + "%" : Local.Generic_STOPPED;
@@ -81,6 +83,10 @@ namespace KerbalismProcess
 
             if (IsRunning() && CurrentPowerPercent <= 0f)
                 CurrentPowerPercent = 100f;
+            else if (IsRunning())
+                CurrentPowerPercent = Mathf.Clamp(CurrentPowerPercent, MinimumThrottle, 100f);
+
+            lastUiPowerPercent = CurrentPowerPercent;
 
             if (!IsRunning())
                 SetEfficiencyPlaceholder();
@@ -271,6 +277,8 @@ namespace KerbalismProcess
             {
                 Fields[nameof(CurrentSafetyOverride)].guiActive = false;
                 Fields[nameof(CurrentSafetyOverride)].guiActiveEditor = false;
+                Fields[nameof(CurrentPowerPercent)].guiActive = false;
+                Fields[nameof(CurrentPowerPercent)].guiActiveEditor = false;
                 Fields[nameof(CoreStatus)].guiActive = false;
                 return;
             }
@@ -287,7 +295,50 @@ namespace KerbalismProcess
             flightRange.minValue = 700f;
             flightRange.maxValue = MaximumTemperature;
 
+            RefreshReactorPowerField();
+            lastUiPowerPercent = CurrentPowerPercent;
             UpdateCoreStatus();
+        }
+
+        private void RefreshReactorPowerField()
+        {
+            if (!IsFissionReactor())
+                return;
+
+            bool showPower = !broken && CoreDamage < 100f;
+            var powerField = Fields[nameof(CurrentPowerPercent)];
+            powerField.guiActive = showPower;
+            powerField.guiActiveEditor = showPower;
+
+            if (!showPower)
+                return;
+
+            powerField.guiName = Localizer.Format("#LOC_KerbalismBridge_FissionReactor_CurrentPowerPercent");
+
+            var editorPowerRange = (UI_FloatRange)powerField.uiControlEditor;
+            editorPowerRange.minValue = MinimumThrottle;
+            editorPowerRange.maxValue = 100f;
+
+            var flightPowerRange = (UI_FloatRange)powerField.uiControlFlight;
+            flightPowerRange.minValue = MinimumThrottle;
+            flightPowerRange.maxValue = 100f;
+        }
+
+        private void SyncReactorPowerFromUi()
+        {
+            if (!IsFissionReactor() || broken || Mathf.Approximately(CurrentPowerPercent, lastUiPowerPercent))
+                return;
+
+            lastUiPowerPercent = CurrentPowerPercent;
+            CurrentPowerPercent = Mathf.Clamp(CurrentPowerPercent, MinimumThrottle, 100f);
+
+            if (!IsRunning())
+                return;
+
+            lastAppliedCapacity = -1;
+            ApplyThermalCapacityScale(force: true);
+            if (SystemHeatEditorSimulation.IsEditorScene)
+                SyncPlannerPseudoResource();
         }
 
         private void UpdateCoreStatus()
@@ -355,6 +406,8 @@ namespace KerbalismProcess
                     SetEfficiencyPlaceholder();
             }
 
+            SyncReactorPowerFromUi();
+
             if (!KERBALISM.Lib.IsPAWVisible(part))
                 return;
 
@@ -371,7 +424,7 @@ namespace KerbalismProcess
             if (Events["DumpValve"].active)
             {
                 Events["DumpValve"].guiActive = !DeployGateActive() || IsDeployedForUse();
-                Events["DumpValve"].guiName = KERBALISM.Local.ProcessController_Dump;
+                ProcessControllerUiHelper.RefreshDumpValveLabel(this);
             }
         }
 
@@ -407,6 +460,7 @@ namespace KerbalismProcess
             }
 
             lastAppliedCapacity = -1;
+            lastUiPowerPercent = CurrentPowerPercent;
             if (IsRunning())
                 ApplyThermalCapacityScale(force: true);
             else
@@ -563,6 +617,7 @@ namespace KerbalismProcess
             isEnabled = false;
             enabled = false;
             UpdateCoreStatus();
+            RefreshReactorPowerField();
 
             if (heatModule != null)
                 heatModule.AddFlux(resource, 0f, 0f, false);
