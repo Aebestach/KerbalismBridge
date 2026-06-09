@@ -15,6 +15,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 - Fix FFT regolith scoop Kerbalism harvester balance (**zKerbalismFFT**): preserve FFT `HarvestThreshold`, `Efficiency`, and thermal params instead of generic drill thresholds/rates.
 - **Fix:** restore Kerbalism dump-valve status text on Layer A converters and reactors (**zKerbalismProcess**); PAW again shows which outputs are vented (e.g. `Dump: Nothing`, `Dump: Oxygen`).
 - **Fix:** restore manual fission-reactor power throttle in PAW for NFE Layer A reactors (**zKerbalismProcess**); `CurrentPowerPercent` slider drives EC, waste heat, and Planner while running.
+- **Fix:** NFE Layer A fission reactors default dump valve to `ElectricCharge` (**zKerbalismProcess**); Planner and Monitor no longer treat onboard EC buffer as the generation cap when Kerbalism profile lists EC as a vent option.
 
 ### [1.0.1] - 2026-06-08
 
@@ -47,6 +48,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 - **Fix:** `ProcessControllerSystemHeat` and `ProcessControllerDeployable` PAW dump button shows active valve title again (`ProcessControllerUiHelper`); matches stock Kerbalism `Dump: <mode>` labeling.
 - **Fix:** NFE `ProcessControllerSystemHeat` fission reactors (`_Nukereactor`) expose `CurrentPowerPercent` throttle slider in the fission-reactor PAW group; respects per-part `MinimumThrottle` and updates Kerbalism pseudo-resource throughput plus SystemHeat flux.
+- **Fix:** set `valve_i = 1` on NFE fission reactors so the default dump mode is `ElectricCharge` (requires Kerbalism `fission reactor` profile to list EC in `dump_valve`).
 
 ### [1.0.0] - 2026-06-07
 
