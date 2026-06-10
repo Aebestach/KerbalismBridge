@@ -10,6 +10,12 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.3] - 2026-06-10
+
+- **Fix:** SystemHeat radiator + TweakScale compatibility (**zKerbalismNative**, **zKerbalismProcess**): stop PartLoader `OnLoad` NRE when caching the prefab temperature curve; avoid empty `resHandler.inputResources` during `FixedUpdate` (fixes `IndexOutOfRangeException` in `UpdatePAW` / `FixedUpdate` when scaling radiators in the editor).
+- **Fix:** add `ElectricCharge` `RESOURCE` to stock `ModuleActiveRadiator` → `SystemHeatRadiatorKerbalism` conversions so SystemHeat UI and sim have a valid input resource list.
+- **Fix:** remove invalid TweakScale `RESOURCE` exponent for `SystemHeatRadiatorKerbalism` (EC scaling stays in code via `scale` / `scaleEmissionPower`).
+
 ### [1.0.2] - 2026-06-08
 
 - Fix FFT regolith scoop Kerbalism harvester balance (**zKerbalismFFT**): preserve FFT `HarvestThreshold`, `Efficiency`, and thermal params instead of generic drill thresholds/rates.
@@ -44,6 +50,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismProcess
 
+### [1.0.3] - 2026-06-10
+
+- **Fix:** `SystemHeatRadiators.cfg` adds `ElectricCharge` `RESOURCE` when converting stock `ModuleActiveRadiator` parts (SystemHeat expects at least one module input resource).
+- **Fix:** drop invalid `RESOURCE` block from `TweakScale/ScaleExponents.cfg` for `SystemHeatRadiatorKerbalism`.
+
 ### [1.0.2] - 2026-06-08
 
 - **Fix:** `ProcessControllerSystemHeat` and `ProcessControllerDeployable` PAW dump button shows active valve title again (`ProcessControllerUiHelper`); matches stock Kerbalism `Dump: <mode>` labeling.
@@ -58,6 +69,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismNative
+
+### [1.0.3] - 2026-06-10
+
+- **Fix:** `SystemHeatRadiatorKerbalism.EnsureBaseTemperatureCurve` no longer runs in `OnLoad` and guards null `partPrefab` / `FloatCurve.Curve` (eliminates PartLoader NRE on Heat Control and other converted radiators).
+- **Fix:** `FixedUpdate` zeroes module resource rates instead of replacing `resHandler.inputResources` with an empty list, so SystemHeat base `UpdatePAW` / `FixedUpdate` no longer throw when TweakScale rescales a radiator.
 
 ### [1.0.1] - 2026-06-08
 
