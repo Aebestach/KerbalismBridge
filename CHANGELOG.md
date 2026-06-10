@@ -15,6 +15,7 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 - **Fix:** SystemHeat radiator + TweakScale compatibility (**zKerbalismNative**, **zKerbalismProcess**): stop PartLoader `OnLoad` NRE when caching the prefab temperature curve; avoid empty `resHandler.inputResources` during `FixedUpdate` (fixes `IndexOutOfRangeException` in `UpdatePAW` / `FixedUpdate` when scaling radiators in the editor).
 - **Fix:** add `ElectricCharge` `RESOURCE` to stock `ModuleActiveRadiator` → `SystemHeatRadiatorKerbalism` conversions so SystemHeat UI and sim have a valid input resource list.
 - **Fix:** remove invalid TweakScale `RESOURCE` exponent for `SystemHeatRadiatorKerbalism` (EC scaling stays in code via `scale` / `scaleEmissionPower`).
+- **Balance:** CRANE particle detector science (**zKerbalismFFT**): replace `Surface@Biomes` with global `SrfLanded` / `SrfSplashed` in `FFTScience.cfg`; keep `InSpaceLow` / `InSpaceHigh`.
 
 ### [1.0.2] - 2026-06-08
 
@@ -125,6 +126,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismFFT
+
+### [1.0.3] - 2026-06-10
+
+- **Balance:** CRANE particle detector (`fftParticleDetector`) in `FFTScience.cfg`: replace `Surface@Biomes` with global `SrfLanded` / `SrfSplashed` (one landed subject per body; splashed only on ocean bodies). Keep `InSpaceLow` / `InSpaceHigh`. Removes per-biome surface subjects that inflated science yield (e.g. Mun).
 
 ### [1.0.2] - 2026-06-08
 
