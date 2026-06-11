@@ -26,7 +26,7 @@ namespace KerbalismNative
 	[HarmonyPatch(typeof(ModuleSystemHeatConverter), "PostProcess")]
 	internal static class Patch_SystemHeatConverter_PostProcess
 	{
-		private static bool Prefix(ModuleSystemHeatConverter __instance, ConverterResults result)
+		private static bool Prefix(ModuleSystemHeatConverter __instance, ConverterResults result, double deltaTime)
 		{
 			SystemHeatConverterKerbalismUpdater updater = __instance.part.FindModuleImplementing<SystemHeatConverterKerbalismUpdater>();
 			if (updater == null || !updater.OwnsConverter(__instance))
@@ -40,7 +40,7 @@ namespace KerbalismNative
 	[HarmonyPatch(typeof(ModuleSystemHeatHarvester), "PostProcess")]
 	internal static class Patch_SystemHeatHarvester_PostProcess
 	{
-		private static bool Prefix(ModuleSystemHeatHarvester __instance, ConverterResults result)
+		private static bool Prefix(ModuleSystemHeatHarvester __instance, ConverterResults result, double deltaTime)
 		{
 			SystemHeatHarvesterKerbalismUpdater updater = __instance.part.FindModuleImplementing<SystemHeatHarvesterKerbalismUpdater>();
 			if (updater == null || !updater.OwnsHarvester(__instance))
