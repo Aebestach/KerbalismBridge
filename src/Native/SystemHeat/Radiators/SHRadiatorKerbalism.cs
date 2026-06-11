@@ -26,12 +26,12 @@ namespace KerbalismNative
 		{
 			base.OnLoad(node);
 			inputResourcesClone = resHandler.inputResources.ConvertAll(p => p);
-			EnsureBaseTemperatureCurve();
 		}
 
 		public override void OnStart(StartState state)
 		{
 			base.OnStart(state);
+			inputResourcesClone = resHandler.inputResources.ConvertAll(p => p);
 			EnsureBaseTemperatureCurve();
 			if (scale != 1f)
 				RebuildTemperatureCurve();
@@ -39,11 +39,17 @@ namespace KerbalismNative
 
 		void EnsureBaseTemperatureCurve()
 		{
-			if (baseTemperatureCurve != null && baseTemperatureCurve.Curve.length > 0)
+			if (baseTemperatureCurve != null && baseTemperatureCurve.Curve != null && baseTemperatureCurve.Curve.length > 0)
 				return;
 
-			ModuleSystemHeatRadiator prefabRadiator = part.partInfo.partPrefab.FindModuleImplementing<ModuleSystemHeatRadiator>();
-			FloatCurve source = prefabRadiator != null ? prefabRadiator.temperatureCurve : temperatureCurve;
+			FloatCurve source = temperatureCurve;
+			Part prefab = part?.partInfo?.partPrefab;
+			if (prefab != null)
+			{
+				ModuleSystemHeatRadiator prefabRadiator = prefab.FindModuleImplementing<ModuleSystemHeatRadiator>();
+				if (prefabRadiator?.temperatureCurve != null)
+					source = prefabRadiator.temperatureCurve;
+			}
 			baseTemperatureCurve = CloneCurve(source);
 		}
 
@@ -64,7 +70,7 @@ namespace KerbalismNative
 		void RebuildTemperatureCurve()
 		{
 			EnsureBaseTemperatureCurve();
-			if (baseTemperatureCurve.Curve.length == 0)
+			if (baseTemperatureCurve == null || baseTemperatureCurve.Curve == null || baseTemperatureCurve.Curve.length == 0)
 				return;
 
 			temperatureCurve = new FloatCurve();
@@ -130,11 +136,24 @@ namespace KerbalismNative
 
 		public override void FixedUpdate()
 		{
-			// Temporary set input resources list to empty to prevent resources consumption in FixedUpdate
-			// Input resources consumption is handled by ResourceUpdate
-			resHandler.inputResources = new List<ModuleResource>();
+			// Zero rates during base FixedUpdate so SystemHeat keeps a valid resource list for PAW/sim
+			// while Kerbalism ResourceUpdate handles actual consumption.
+			if (inputResourcesClone == null || inputResourcesClone.Count == 0)
+			{
+				base.FixedUpdate();
+				return;
+			}
+
+			int count = resHandler.inputResources.Count;
+			var savedRates = new double[count];
+			for (int i = 0; i < count; i++)
+			{
+				savedRates[i] = resHandler.inputResources[i].rate;
+				resHandler.inputResources[i].rate = 0.0;
+			}
 			base.FixedUpdate();
-			resHandler.inputResources = inputResourcesClone;
+			for (int i = 0; i < count; i++)
+				resHandler.inputResources[i].rate = savedRates[i];
 		}
 	}
 }
