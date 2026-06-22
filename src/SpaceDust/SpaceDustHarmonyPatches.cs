@@ -37,6 +37,7 @@ namespace KerbalismSpaceDust
 			}
 
 			patchesApplied = true;
+			harmony.PatchAll(Assembly.GetExecutingAssembly());
 			BridgeUtils.Log("SpaceDust satellite Harmony patches applied.");
 		}
 

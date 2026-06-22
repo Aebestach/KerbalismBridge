@@ -59,7 +59,13 @@ namespace KerbalismSpaceDust
 				return 1d;
 
 			float loopTemp = BridgeModuleFields.GetFloat(heatModule, "currentLoopTemperature");
-			return harvester.SystemEfficiency.Evaluate(loopTemp);
+			return EvaluateThermalScale(harvester.SystemEfficiency, loopTemp);
+		}
+
+		private static double EvaluateThermalScale(FloatCurve efficiencyCurve, float loopTemperatureK)
+		{
+			float thermal = efficiencyCurve != null ? efficiencyCurve.Evaluate(loopTemperatureK) : 1f;
+			return Mathf.Clamp(thermal, 0f, 1f);
 		}
 
 		private PartModule FindLinkedHeatModule(ModuleSpaceDustHarvester harvester)
@@ -169,7 +175,7 @@ namespace KerbalismSpaceDust
 				if (loopTemp <= 0f)
 					return 1d;
 
-				return harvesterPrefab.SystemEfficiency.Evaluate(loopTemp);
+				return EvaluateThermalScale(harvesterPrefab.SystemEfficiency, loopTemp);
 			}
 
 			return 1d;
