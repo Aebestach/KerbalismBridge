@@ -51,6 +51,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BridgeSystemHeatAccess.cs" />
+    <Compile Include="FissionReactorStateDebug.cs" />
     <Compile Include="KerbalismBridgeCoreInit.cs" />
     <Compile Include="BridgeModuleFields.cs" />
     <Compile Include="BridgeSettings.cs" />

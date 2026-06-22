@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using KSP.Localization;
 using KERBALISM;
+using SimpleBoiloff;
 
 namespace KerbalismCryo
 {
@@ -10,44 +10,36 @@ namespace KerbalismCryo
 		internal const string BrokerName = "CryoTank";
 		internal static string BrokerTitle => Localizer.Format("#LOC_KerbalismCryo_Brokers_Cryotank");
 
-		internal static void AddPlannerRates(PartModule cryoModule, List<KeyValuePair<string, double>> resourceChangeRequest)
+		internal static void AddPlannerRates(ModuleCryoTank cryoModule, List<KeyValuePair<string, double>> resourceChangeRequest)
 		{
-			if (cryoModule == null)
+			if (cryoModule == null || !cryoModule.CoolingEnabled)
 				return;
 
-			bool coolingEnabled = Lib.ReflectionValue<bool>(cryoModule, "CoolingEnabled");
-			if (!coolingEnabled)
-				return;
-
-			float coolingCost = Lib.ReflectionValue<float>(cryoModule, "CoolingCost");
-			IList fuels = CryoUtils.GetFuelsList(cryoModule);
-			if (fuels == null || coolingCost <= 0f)
+			IList<BoiloffFuel> fuels = CryoTankAccess.GetFuels(cryoModule);
+			if (fuels == null || cryoModule.CoolingCost <= 0f)
 				return;
 
 			double totalCost = 0.0;
-			foreach (object fuel in fuels)
+			foreach (BoiloffFuel fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
-				if (string.IsNullOrEmpty(fuelName))
+				if (fuel == null || string.IsNullOrEmpty(fuel.fuelName))
 					continue;
 
-				double amount = Lib.Amount(cryoModule.part, fuelName);
+				double amount = Lib.Amount(cryoModule.part, fuel.fuelName);
 				if (amount > double.Epsilon)
-					totalCost += coolingCost * amount * 0.001;
+					totalCost += cryoModule.CoolingCost * amount * 0.001;
 			}
 
 			if (totalCost > 0.0)
 				resourceChangeRequest.Add(new KeyValuePair<string, double>("ElectricCharge", -totalCost));
 		}
 
-		internal static string UpdateLoaded(PartModule cryoModule, Vessel v)
+		internal static string UpdateLoaded(ModuleCryoTank cryoModule, Vessel v)
 		{
 			if (cryoModule == null || v == null)
 				return BrokerTitle;
 
-			bool coolingEnabled = Lib.ReflectionValue<bool>(cryoModule, "CoolingEnabled");
-			float coolingCost = Lib.ReflectionValue<float>(cryoModule, "CoolingCost");
-			IList fuels = CryoUtils.GetFuelsList(cryoModule);
+			IList<BoiloffFuel> fuels = CryoTankAccess.GetFuels(cryoModule);
 			if (fuels == null)
 				return BrokerTitle;
 
@@ -56,33 +48,31 @@ namespace KerbalismCryo
 			double dt = TimeWarp.fixedDeltaTime;
 			double totalCost = 0.0;
 
-			foreach (object fuel in fuels)
+			foreach (BoiloffFuel fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
-				if (string.IsNullOrEmpty(fuelName))
+				if (fuel == null || string.IsNullOrEmpty(fuel.fuelName))
 					continue;
 
-				PartResource resource = cryoModule.part.Resources.Get(fuelName);
+				PartResource resource = cryoModule.part.Resources.Get(fuel.fuelName);
 				if (resource == null || resource.amount <= double.Epsilon)
 					continue;
 
-				if (coolingEnabled && coolingCost > 0f)
+				if (cryoModule.CoolingEnabled && cryoModule.CoolingCost > 0f)
 				{
-					totalCost += coolingCost * resource.amount * 0.001 * dt;
+					totalCost += cryoModule.CoolingCost * resource.amount * 0.001 * dt;
 				}
 				else
 				{
-					float boiloffRate = CryoUtils.GetBoiloffRate(fuel);
-					double boiled = CryoUtils.ApplyBoiloffAmount(resource.amount, boiloffRate, dt);
+					double boiled = CryoUtils.ApplyBoiloffAmount(resource.amount, fuel.boiloffRate, dt);
 					if (boiled > double.Epsilon)
 						resource.amount = (float)(resource.amount - boiled);
 				}
 			}
 
-			if (coolingEnabled && totalCost > double.Epsilon)
+			if (cryoModule.CoolingEnabled && totalCost > double.Epsilon)
 			{
 				if (ec.Amount < totalCost)
-					Lib.ReflectionValue(cryoModule, "CoolingEnabled", false);
+					cryoModule.CoolingEnabled = false;
 				else
 					ec.Consume(totalCost, broker);
 			}
@@ -94,15 +84,14 @@ namespace KerbalismCryo
 			Vessel v,
 			ProtoPartSnapshot part,
 			ProtoPartModuleSnapshot cryoSnapshot,
-			PartModule cryoPrefab,
+			ModuleCryoTank cryoPrefab,
 			double elapsed_s)
 		{
 			if (cryoPrefab == null || part == null)
 				return BrokerTitle;
 
 			bool coolingEnabled = Lib.Proto.GetBool(cryoSnapshot, "CoolingEnabled");
-			float coolingCost = Lib.ReflectionValue<float>(cryoPrefab, "CoolingCost");
-			IList fuels = CryoUtils.GetFuelsList(cryoPrefab);
+			IList<BoiloffFuel> fuels = CryoTankAccess.GetFuels(cryoPrefab);
 			if (fuels == null)
 				return BrokerTitle;
 
@@ -111,27 +100,25 @@ namespace KerbalismCryo
 			double totalEcCost = 0.0;
 			string brokerTitle = BrokerTitle;
 
-			foreach (object fuel in fuels)
+			foreach (BoiloffFuel fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
-				if (string.IsNullOrEmpty(fuelName))
+				if (fuel == null || string.IsNullOrEmpty(fuel.fuelName))
 					continue;
 
-				ProtoPartResourceSnapshot protoFuel = CryoUtils.FindPartResource(part, fuelName);
+				ProtoPartResourceSnapshot protoFuel = CryoUtils.FindPartResource(part, fuel.fuelName);
 				if (protoFuel == null || protoFuel.amount <= double.Epsilon)
 					continue;
 
 				double amount = protoFuel.amount;
 
-				if (coolingAvailable && coolingCost > 0f)
+				if (coolingAvailable && cryoPrefab.CoolingCost > 0f)
 				{
-					totalEcCost += coolingCost * amount * 0.001;
+					totalEcCost += cryoPrefab.CoolingCost * amount * 0.001;
 				}
 				else
 				{
-					float boiloffRate = CryoUtils.GetBoiloffRate(fuel);
-					double boiled = CryoUtils.ApplyBoiloffAmount(amount, boiloffRate, elapsed_s);
-					CryoUtils.ConsumePartResource(part, fuelName, boiled, v, brokerTitle);
+					double boiled = CryoUtils.ApplyBoiloffAmount(amount, fuel.boiloffRate, elapsed_s);
+					CryoUtils.ConsumePartResource(part, fuel.fuelName, boiled, v, brokerTitle);
 				}
 			}
 

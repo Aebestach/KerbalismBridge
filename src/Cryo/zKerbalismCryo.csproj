@@ -44,6 +44,10 @@
       <HintPath>..\..\..\..\KSPDLL\others\Kerbalism.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SimpleBoiloff">
+      <HintPath>..\..\..\..\KSPDLL\others\SimpleBoiloff.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="SystemHeat">
       <HintPath>..\..\..\..\KSPDLL\others\SystemHeat.dll</HintPath>
       <Private>False</Private>
@@ -60,10 +64,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Bridge\zKerbalismBridge.csproj">
+      <Project>{C1D2E3F4-A5B6-4789-C0D1-E2F3A4B5C6D7}</Project>
+      <Name>zKerbalismBridge</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="CryoHarmonyPatches.cs" />
     <Compile Include="CryoSettings.cs" />
+    <Compile Include="CryoTankAccess.cs" />
     <Compile Include="CryoTankResourceSim.cs" />
     <Compile Include="CryoUtils.cs" />
+    <Compile Include="SystemHeatCryoTankAccess.cs" />
     <Compile Include="KerbalismCryoCoreInit.cs" />
     <Compile Include="Modules\CryoTankKerbalismUpdater.cs" />
     <Compile Include="Modules\SystemHeatCryoTankKerbalismUpdater.cs" />

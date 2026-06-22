@@ -35,6 +35,25 @@ namespace KerbalismBridge
 			return fallback;
 		}
 
+		public static int GetInt(PartModule module, string name, int fallback = 0)
+		{
+			if (module == null)
+				return fallback;
+
+			FieldInfo field = GetField(module.GetType(), name);
+			if (field != null && field.FieldType == typeof(int))
+				return (int)field.GetValue(module);
+
+			return fallback;
+		}
+
+		public static float EvaluateFloatCurve(object curve, float input, float fallback = 0f)
+		{
+			if (curve is FloatCurve floatCurve && floatCurve.Curve.length > 0)
+				return floatCurve.Evaluate(input);
+			return fallback;
+		}
+
 		public static string GetString(PartModule module, string name, string fallback = "")
 		{
 			if (module == null)
