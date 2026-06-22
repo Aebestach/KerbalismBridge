@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
-using System.Reflection;
 using KERBALISM;
+using SimpleBoiloff;
 
 namespace KerbalismCryo
 {
@@ -32,71 +31,9 @@ namespace KerbalismCryo
 			return false;
 		}
 
-		internal static PartModule FindCryoTankModule(Part part)
+		internal static ModuleCryoTank FindCryoTankModule(Part part)
 		{
-			if (part == null)
-				return null;
-
-			foreach (PartModule module in part.Modules)
-			{
-				if (module.moduleName == "ModuleCryoTank")
-					return module;
-			}
-
-			return null;
-		}
-
-		internal static Type ResolveSystemHeatCryoTankType()
-		{
-			return Type.GetType("SystemHeat.ModuleSystemHeatCryoTank, SystemHeat", false);
-		}
-
-		internal static object GetFieldValue(object target, string fieldName)
-		{
-			if (target == null)
-				return null;
-
-			FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			return field?.GetValue(target);
-		}
-
-		internal static T GetFieldValue<T>(object target, string fieldName, T fallback = default)
-		{
-			object value = GetFieldValue(target, fieldName);
-			if (value is T typed)
-				return typed;
-			return fallback;
-		}
-
-		internal static IList GetFuelsList(PartModule cryoModule)
-		{
-			return GetFieldValue(cryoModule, "fuels") as IList;
-		}
-
-		internal static string GetFuelName(object fuelEntry)
-		{
-			return GetFieldValue<string>(fuelEntry, "fuelName");
-		}
-
-		internal static float GetBoiloffRate(object fuelEntry)
-		{
-			return GetFieldValue<float>(fuelEntry, "boiloffRate");
-		}
-
-		internal static float GetCryoTemperature(object fuelEntry)
-		{
-			float temp = GetFieldValue<float>(fuelEntry, "cryoTemperature");
-			if (temp > 0f)
-				return temp;
-			return GetFieldValue<float>(fuelEntry, "CryocoolerTemperature");
-		}
-
-		internal static float GetCoolingHeatCost(object fuelEntry)
-		{
-			float value = GetFieldValue<float>(fuelEntry, "coolingHeatCost");
-			if (value > 0f)
-				return value;
-			return GetFieldValue<float>(fuelEntry, "CoolingHeatCost");
+			return part?.FindModuleImplementing<ModuleCryoTank>();
 		}
 
 		internal static double ApplyBoiloffAmount(double amount, float boiloffRatePercentPerHour, double elapsed_s)

@@ -63,9 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automation\ComputerDevicesPatch.cs" />
+    <Compile Include="Automation\ComputerDevicesSHNativePatch.cs" />
     <Compile Include="Core\KerbalismNativeCoreInit.cs" />
     <Compile Include="Core\KerbalismNativeHarmony.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemHeat\Automation\SHNativeDeviceCollector.cs" />
+    <Compile Include="SystemHeat\Automation\SystemHeatNativeModuleDevices.cs" />
     <Compile Include="SystemHeat\Converters\SHNativeConverterResourceSim.cs" />
     <Compile Include="SystemHeat\Converters\SystemHeatConverterKerbalismUpdater.cs" />
     <Compile Include="SystemHeat\Fission\Automation\FissionDeviceCollector.cs" />

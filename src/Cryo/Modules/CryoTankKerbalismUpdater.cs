@@ -1,12 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using KERBALISM;
+using SimpleBoiloff;
 
 namespace KerbalismCryo
 {
 	public class CryoTankKerbalismUpdater : PartModule, IKerbalismModule
 	{
-		PartModule cryoModule;
+		ModuleCryoTank cryoModule;
 
 		public override void OnStart(StartState state)
 		{
@@ -68,7 +68,7 @@ namespace KerbalismCryo
 			if (!CryoSettings.Enabled)
 				return CryoTankResourceSim.BrokerTitle;
 
-			PartModule cryoPrefab = CryoUtils.FindCryoTankModule(proto_part);
+			ModuleCryoTank cryoPrefab = CryoUtils.FindCryoTankModule(proto_part);
 			if (cryoPrefab == null)
 				return CryoTankResourceSim.BrokerTitle;
 
@@ -82,17 +82,18 @@ namespace KerbalismCryo
 			bool coolingEnabled = Lib.Proto.GetBool(cryoSnapshot, "CoolingEnabled");
 			if (coolingEnabled)
 			{
-				float coolingCost = Lib.ReflectionValue<float>(cryoPrefab, "CoolingCost");
-				IList fuels = CryoUtils.GetFuelsList(cryoPrefab);
-				if (fuels != null && coolingCost > 0f)
+				IList<BoiloffFuel> fuels = CryoTankAccess.GetFuels(cryoPrefab);
+				if (fuels != null && cryoPrefab.CoolingCost > 0f)
 				{
-					foreach (object fuel in fuels)
+					foreach (BoiloffFuel fuel in fuels)
 					{
-						string fuelName = CryoUtils.GetFuelName(fuel);
-						ProtoPartResourceSnapshot protoFuel = CryoUtils.FindPartResource(part_snapshot, fuelName);
+						if (fuel == null || string.IsNullOrEmpty(fuel.fuelName))
+							continue;
+
+						ProtoPartResourceSnapshot protoFuel = CryoUtils.FindPartResource(part_snapshot, fuel.fuelName);
 						if (protoFuel == null || protoFuel.amount <= double.Epsilon)
 							continue;
-						ecRate += coolingCost * protoFuel.amount * 0.001;
+						ecRate += cryoPrefab.CoolingCost * protoFuel.amount * 0.001;
 					}
 				}
 			}

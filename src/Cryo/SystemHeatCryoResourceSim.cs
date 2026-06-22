@@ -48,7 +48,7 @@ namespace KerbalismCryo
 			if (cryo == null)
 				return 0.0;
 
-			IList fuels = CryoUtils.GetFuelsList(cryo);
+			IEnumerable fuels = SystemHeatCryoTankAccess.GetFuels(cryo);
 			if (fuels == null)
 				return 0.0;
 
@@ -56,7 +56,7 @@ namespace KerbalismCryo
 			double heatCost = 0.0;
 			foreach (object fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
+				string fuelName = SystemHeatCryoTankAccess.GetFuelName(fuel);
 				if (string.IsNullOrEmpty(fuelName))
 					continue;
 
@@ -65,7 +65,7 @@ namespace KerbalismCryo
 					continue;
 
 				fuelAmount += resource.amount;
-				float entryCost = CryoUtils.GetCoolingHeatCost(fuel);
+				float entryCost = SystemHeatCryoTankAccess.GetCoolingHeatCost(fuel);
 				if (entryCost > 0f)
 					heatCost = Math.Max(heatCost, entryCost);
 			}
@@ -97,7 +97,7 @@ namespace KerbalismCryo
 
 			bool coolingEnabled = Lib.Proto.GetBool(cryoSnapshot, "CoolingEnabled");
 			bool coolingAllowed = Lib.Proto.GetBool(cryoSnapshot, "CoolingAllowed");
-			IList fuels = CryoUtils.GetFuelsList(cryoPrefab);
+			IEnumerable fuels = SystemHeatCryoTankAccess.GetFuels(cryoPrefab);
 			if (fuels == null)
 				return BrokerTitle;
 
@@ -106,7 +106,7 @@ namespace KerbalismCryo
 
 			foreach (object fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
+				string fuelName = SystemHeatCryoTankAccess.GetFuelName(fuel);
 				if (string.IsNullOrEmpty(fuelName))
 					continue;
 
@@ -128,7 +128,7 @@ namespace KerbalismCryo
 
 			foreach (object fuel in fuels)
 			{
-				string fuelName = CryoUtils.GetFuelName(fuel);
+				string fuelName = SystemHeatCryoTankAccess.GetFuelName(fuel);
 				if (string.IsNullOrEmpty(fuelName))
 					continue;
 
@@ -136,12 +136,12 @@ namespace KerbalismCryo
 				if (protoFuel == null || protoFuel.amount <= double.Epsilon)
 					continue;
 
-				float cryoTemp = CryoUtils.GetCryoTemperature(fuel);
+				float cryoTemp = SystemHeatCryoTankAccess.GetCryoTemperature(fuel);
 				bool fuelShouldBoiloff = allFuelsBoiloff || (cryoTemp > 0f && loopTemp > cryoTemp);
 				if (!fuelShouldBoiloff)
 					continue;
 
-				float boiloffRate = CryoUtils.GetBoiloffRate(fuel);
+				float boiloffRate = SystemHeatCryoTankAccess.GetBoiloffRate(fuel);
 				double boiled = CryoUtils.ApplyBoiloffAmountSystemHeat(protoFuel.amount, boiloffRate, elapsed_s, fluxScale);
 				CryoUtils.ConsumePartResource(part, fuelName, boiled, v, BrokerTitle);
 				boiloffOccuring = true;
