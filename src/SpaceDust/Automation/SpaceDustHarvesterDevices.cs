@@ -6,14 +6,6 @@ namespace KerbalismSpaceDust
 {
 	internal static class SpaceDustHarvesterControl
 	{
-		internal const string ExcludedAtmosphereScoopPartName = "fft-atmosphere-scoop-1";
-
-		internal static bool IsAutomationEligiblePart(Part part) =>
-			part != null && part.name != ExcludedAtmosphereScoopPartName;
-
-		internal static bool IsAutomationEligiblePart(ProtoPartSnapshot partSnapshot) =>
-			partSnapshot != null && partSnapshot.partName != ExcludedAtmosphereScoopPartName;
-
 		internal static void SetEnabled(ModuleSpaceDustHarvester harvester, bool value)
 		{
 			if (harvester == null || harvester.Enabled == value)
