@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
-using KERBALISM;
 using KerbalismBridge;
 using SpaceDust;
 
@@ -66,11 +65,9 @@ namespace KerbalismSpaceDust
 				if (!part.modules.Contains(harvester))
 					continue;
 
-				bool hasKerbalismUpdater = part.modules.Exists(module => module.moduleName == "SpaceDustHarvesterKerbalismUpdater");
-				if (!hasKerbalismUpdater)
+				if (!part.modules.Exists(module => module.moduleName == "SpaceDustHarvesterKerbalismUpdater"))
 					return true;
 
-				Lib.Proto.Set(harvester, "Enabled", false);
 				return false;
 			}
 

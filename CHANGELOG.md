@@ -10,6 +10,16 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.4] - 2026-06-22
+
+- **Enhancement:** SystemHeat background loop thermal sim (**zKerbalismBridge**): capture loaded NFE fission reactor state on scene switch/pause; integrate loop temperatures with flux anchors and radiator temperature curves; default `BackgroundRadiatorCoefficient` raised from `0.05` to `1.0`.
+- **Refactor:** CryoTanks background access (**zKerbalismCryo**): route boiloff and EC paths through SimpleBoiloff helpers and shared access types for cleaner bridge integration.
+- **Enhancement:** SpaceDust Layer B background harvest (**zKerbalismSpaceDust**): Kerbalism background resource sim now routes harvest rates and EC for unloaded vessels with `SpaceDustHarvesterKerbalismUpdater`.
+- **Feature:** Kerbalism Automation devices for generic SystemHeat native modules (**zKerbalismNative**) and SpaceDust harvesters (**zKerbalismSpaceDust**); FFT atmosphere scoop excluded from automation list.
+- **Fix:** SpaceDust harvester thermal efficiency clamped to 0–1 so Kerbalism rates never exceed nominal when the SystemHeat curve evaluates above unity.
+- **Fix:** SpaceDust resource blocking uses Harmony `Part.RequestResource` patches (all overloads) instead of stack-trace matching.
+- **Fix:** SpaceDust harvesters with Kerbalism Layer B (**zKerbalismSpaceDust**): stop clearing `Enabled` when blocking native `SpaceDustHarvesterBackground.Process`; background sim no longer turns off harvesters (e.g. PK-EXO Bussard collector) when the vessel unloads.
+
 ### [1.0.3] - 2026-06-10
 
 - **Fix:** SystemHeat 0.7+ / 0.9.x compatibility (**zKerbalismNative**): update Harmony `PostProcess` prefix patches for `ModuleSystemHeatConverter` and `ModuleSystemHeatHarvester` to match the current `(ConverterResults, double deltaTime)` signature (fixes `KerbalismNative load failed` / `Undefined target method` on startup).
@@ -39,6 +49,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismBridge
+
+### [1.0.4] - 2026-06-22
+
+- **Enhancement:** `SystemHeatBackgroundThermal` refactor: snapshot loaded NFE fission reactor state on scene switch/pause; loop temperatures integrate flux anchors and radiator temperature curves for more accurate unloaded-vessel thermal sim.
+- **Change:** default `BackgroundRadiatorCoefficient` in `Settings.cfg` raised from `0.05` to `1.0` (fallback rejection when no temperature curve is available).
 
 ### [1.0.0] - 2026-06-07
 
@@ -72,6 +87,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNative
 
+### [1.0.4] - 2026-06-22
+
+- **Feature:** Kerbalism Automation devices for generic SystemHeat Layer B modules (`SystemHeatNativeModuleDevices`, `SHNativeDeviceCollector`, `ComputerDevicesSHNativePatch`).
+
 ### [1.0.3] - 2026-06-10
 
 - **Fix:** `Patch_SystemHeatConverter_PostProcess` and `Patch_SystemHeatHarvester_PostProcess` Harmony prefixes now include `double deltaTime`, matching SystemHeat 0.7+ (`PostProcess(ConverterResults, double)`); restores Native load with SystemHeat 0.9.x.
@@ -102,6 +121,14 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismSpaceDust
 
+### [1.0.4] - 2026-06-22
+
+- **Enhancement:** Kerbalism background resource sim routes SpaceDust harvest rates and EC for unloaded vessels (`AddBackgroundHarvestRates`, thermal scale from linked SystemHeat loop).
+- **Feature:** Kerbalism Automation devices for SpaceDust harvesters (`SpaceDustHarvesterDevices`, `SpaceDustDeviceCollector`); FFT atmosphere scoop excluded.
+- **Fix:** clamp `SystemEfficiency` thermal scale to 0–1 for loaded and background harvest accounting.
+- **Fix:** replace stack-trace `RequestResource` blocking with Harmony patches on all `Part.RequestResource` overloads (`SpaceDustResourceBlocker`).
+- **Fix:** `SpaceDustBackgroundProcessPrefix` no longer sets harvester `Enabled` to false when skipping native background processing; matches Kerbalism behavior so Layer B harvesters stay on during Kerbalism background resource sim.
+
 ### [1.0.0] - 2026-06-07
 
 - New satellite: SpaceDust `ModuleSpaceDustHarvester` Layer B integration.
@@ -119,6 +146,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismCryo
+
+### [1.0.4] - 2026-06-22
+
+- **Refactor:** CryoTanks and SystemHeat cryo-tank access routed through SimpleBoiloff helpers (`CryoTankAccess`, `SystemHeatCryoTankAccess`); shared boiloff/EC logic for background bridge integration.
 
 ### [1.0.0] - 2026-06-07
 
