@@ -90,10 +90,11 @@ namespace KerbalismNFE
 			{
 				double request = capacitor.ChargeRate * dt;
 				ResourceInfo ec = KERBALISM.ResourceCache.GetResource(v, "ElectricCharge");
-				if (ec.Amount >= request)
+				if (ec.Amount >= capacitor.ChargeRate)
 				{
-					ec.Consume(request, broker);
-					AddStoredCharge(capacitor.part, request * capacitor.ChargeRatio, capacitor.MaximumCharge);
+					double consumed = System.Math.Min(request, ec.Amount);
+					ec.Consume(consumed, broker);
+					AddStoredCharge(capacitor.part, consumed * capacitor.ChargeRatio, capacitor.MaximumCharge);
 					capacitor.lastUpdateTime = Planetarium.GetUniversalTime();
 				}
 			}
@@ -197,9 +198,11 @@ namespace KerbalismNFE
 				resourceChangeRequest.Add(new KeyValuePair<string, double>("ElectricCharge", -prefabModule.ChargeRate));
 
 				double ec = KERBALISM.ResourceCache.Get(v).GetResource(v, "ElectricCharge").Amount;
-				double chargeRequest = prefabModule.ChargeRate * elapsed_s;
-				if (ec >= chargeRequest)
+				if (ec >= prefabModule.ChargeRate)
+				{
+					double chargeRequest = prefabModule.ChargeRate * elapsed_s;
 					AddStoredCharge(partSnapshot, chargeRequest * prefabModule.ChargeRatio, maximumCharge);
+				}
 			}
 
 			return NFECapacitorKerbalismUpdater.brokerTitle;

@@ -10,6 +10,14 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.5] - 2026-06-23
+
+- **Fix:** High timewarp false EC / input shutdown across Layer B modules: CryoTanks active cooling, FFT fusion reactor/engine charging, NFE discharge capacitors, and SpaceDust harvesters now pre-check per-second EC instead of `rate × fixedDeltaTime` / `elapsed_s`.
+- **Fix:** FFT antimatter tanks (**zKerbalismFFT**): background containment no longer misjudges EC deficit; loaded state avoids double EC draw (Harmony skip of native `ConsumeCharge` / `DoCatchup` when `FFTModuleAntimatterTankKerbalism` owns the tank).
+- **Fix:** SystemHeat native converter/harvester (**zKerbalismNative**): temporarily zero stock `ModuleResourceConverter` input ratios during `FixedUpdateFlight` while Kerbalism owns resource IO, preventing high timewarp input-validation shutdown.
+- **Fix:** SpaceDust exosphere harvesters (e.g. PK-EXO Bussard collector) (**zKerbalismSpaceDust**): Kerbalism background sim now harvests on unload — sync native `Enabled` to proto while loaded, fall back to `orbit.vel` when `obt_velocity` is zero, assume ideal intake alignment (`dot = 1`), and skip atmospheric ram scoops in background (loaded flight only).
+- **Fix:** SpaceDust loaded harvest UI sync after native `FixedUpdate` when Kerbalism blocks resource IO.
+
 ### [1.0.4] - 2026-06-22
 
 - **Enhancement:** SystemHeat background loop thermal sim (**zKerbalismBridge**): capture loaded NFE fission reactor state on scene switch/pause; integrate loop temperatures with flux anchors and radiator temperature curves; default `BackgroundRadiatorCoefficient` raised from `0.05` to `1.0`.
@@ -87,6 +95,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNative
 
+### [1.0.5] - 2026-06-23
+
+- **Fix:** `SHNativeConverterInputHarmony` — while Kerbalism Layer B owns SH native converter/harvester resource IO, zero `inputList` ratios for the stock `ModuleResourceConverter` input check during `FixedUpdateFlight` and restore afterward; prevents high timewarp false “insufficient input” shutdown.
+
 ### [1.0.4] - 2026-06-22
 
 - **Feature:** Kerbalism Automation devices for generic SystemHeat Layer B modules (`SystemHeatNativeModuleDevices`, `SHNativeDeviceCollector`, `ComputerDevicesSHNativePatch`).
@@ -112,6 +124,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismNFE
 
+### [1.0.5] - 2026-06-23
+
+- **Fix:** NFE discharge capacitor Layer B: loaded and background charging use per-second EC pre-check instead of whole physics-step / elapsed-time totals (high timewarp false power-off).
+
 ### [1.0.0] - 2026-06-07
 
 - Restored as optional satellite: NFE discharge capacitors (Layer B) and Kerbalism Automation devices.
@@ -120,6 +136,13 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismSpaceDust
+
+### [1.0.5] - 2026-06-23
+
+- **Fix:** Exosphere harvesters (PK-EXO): background resource sim produces harvest rates on unload — `SyncProtoState` writes native `Enabled` to proto while loaded; `GetExosphereOrbitalVelocity` uses `orbit.vel` when `obt_velocity` is zero; background assumes ideal intake alignment (`dot = 1`).
+- **Fix:** `IsHarvesterEnabledInProto` and `HasBackgroundOperatingPower` for robust proto `Enabled` parsing and EC gating in background.
+- **Change:** `HarvestType.Atmosphere` harvesters are skipped in Kerbalism background sim (must fly loaded in atmosphere; avoids misleading on-rails production).
+- **Fix:** loaded EC pre-check and native UI sync (`HasOperatingPower`, `SyncNativeUiAfterFixedUpdate`) aligned with Kerbalism high-timewarp behavior.
 
 ### [1.0.4] - 2026-06-22
 
@@ -147,6 +170,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismCryo
 
+### [1.0.5] - 2026-06-23
+
+- **Fix:** CryoTanks Layer B active cooling: loaded and background EC checks use per-second rate; background no longer multiplies EC threshold by `elapsed_s`; removed duplicate loaded `FixedUpdate` path.
+
 ### [1.0.4] - 2026-06-22
 
 - **Refactor:** CryoTanks and SystemHeat cryo-tank access routed through SimpleBoiloff helpers (`CryoTankAccess`, `SystemHeatCryoTankAccess`); shared boiloff/EC logic for background bridge integration.
@@ -159,6 +186,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismFFT
+
+### [1.0.5] - 2026-06-23
+
+- **Fix:** FFT antimatter tank Layer B (`FFTModuleAntimatterTankKerbalism`): background containment EC check uses per-second rate; loaded state uses `SetPoweredState` + capped charge request; Harmony skips native `ModuleAntimatterTank.ConsumeCharge` and `DoCatchup` to prevent double EC deduction.
+- **Fix:** FFT fusion reactor/engine Layer B charging: per-second EC pre-check for loaded and background sim (high timewarp false “insufficient power” during charge).
 
 ### [1.0.3] - 2026-06-10
 

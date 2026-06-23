@@ -48,8 +48,14 @@ namespace KerbalismSpaceDust
 
 		private static void SpaceDustFixedUpdatePostfix(PartModule __instance)
 		{
-			if (__instance.part.FindModuleImplementing<SpaceDustHarvesterKerbalismUpdater>() != null)
-				SpaceDustResourceBlocker.ExitBlock();
+			if (__instance?.part?.FindModuleImplementing<SpaceDustHarvesterKerbalismUpdater>() == null)
+				return;
+
+			ModuleSpaceDustHarvester harvester = __instance as ModuleSpaceDustHarvester;
+			if (harvester != null)
+				SpaceDustHarvesterKerbalismUpdater.SyncNativeUiAfterFixedUpdate(harvester);
+
+			SpaceDustResourceBlocker.ExitBlock();
 		}
 
 		private static bool SpaceDustBackgroundProcessPrefix(ProtoPartModuleSnapshot ___protoMiner, Vessel ___ves)

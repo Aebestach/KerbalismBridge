@@ -123,22 +123,28 @@ namespace KerbalismFFT
 			ReactorThrottleField?.SetValue(reactor, currentThrottle);
 		}
 
+		internal static bool HasChargeOperatingPower(ResourceInfo ec, float chargeRate)
+		{
+			return chargeRate <= 0f || ec != null && ec.Amount >= chargeRate;
+		}
+
 		internal static bool UpdateLoadedCharge(FusionReactor reactor, Vessel v, string brokerName, string brokerTitle)
 		{
 			if (reactor == null || reactor.Enabled || !reactor.Charging || reactor.Charged || reactor.ChargeRate <= 0f)
 				return false;
 
 			ResourceInfo ec = KERBALISM.ResourceCache.GetResource(v, "ElectricCharge");
-			double chargeRequest = reactor.ChargeRate * TimeWarp.fixedDeltaTime;
-			if (ec.Amount < chargeRequest)
+			if (!HasChargeOperatingPower(ec, reactor.ChargeRate))
 			{
 				SyncLoadedChargeUI(reactor, false);
 				return true;
 			}
 
-			ec.Consume(chargeRequest, KERBALISM.ResourceBroker.GetOrCreate(brokerName, KERBALISM.ResourceBroker.BrokerCategory.Converter, brokerTitle));
+			double chargeRequest = reactor.ChargeRate * TimeWarp.fixedDeltaTime;
+			double consumed = System.Math.Min(chargeRequest, ec.Amount);
+			ec.Consume(consumed, KERBALISM.ResourceBroker.GetOrCreate(brokerName, KERBALISM.ResourceBroker.BrokerCategory.Converter, brokerTitle));
 
-			float gained = Mathf.Min((float)chargeRequest, reactor.ChargeGoal - reactor.CurrentCharge);
+			float gained = Mathf.Min((float)consumed, reactor.ChargeGoal - reactor.CurrentCharge);
 			reactor.CurrentCharge += gained;
 			if (reactor.CurrentCharge >= reactor.ChargeGoal)
 			{
@@ -248,7 +254,7 @@ namespace KerbalismFFT
 			resourceChangeRequest.Add(new KeyValuePair<string, double>("ElectricCharge", -chargeRate));
 
 			double ec = KERBALISM.ResourceCache.Get(v).GetResource(v, "ElectricCharge").Amount;
-			if (ec < chargeRate * elapsed_s)
+			if (ec < chargeRate)
 				return;
 
 			float chargeGoal = GetChargeGoal(prefab);

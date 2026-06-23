@@ -71,7 +71,9 @@ namespace KerbalismCryo
 
 			if (cryoModule.CoolingEnabled && totalCost > double.Epsilon)
 			{
-				if (ec.Amount < totalCost)
+				// High timewarp inflates totalCost via fixedDeltaTime; only require ~1s of cooling EC.
+				double ecPerSecond = dt > double.Epsilon ? totalCost / dt : totalCost;
+				if (ec.Amount < ecPerSecond)
 					cryoModule.CoolingEnabled = false;
 				else
 					ec.Consume(totalCost, broker);
@@ -122,12 +124,8 @@ namespace KerbalismCryo
 				}
 			}
 
-			if (totalEcCost > 0.0)
-			{
-				double ecNeed = totalEcCost * elapsed_s;
-				if (ec.Amount < ecNeed)
-					Lib.Proto.Set(cryoSnapshot, "CoolingEnabled", false);
-			}
+			if (totalEcCost > 0.0 && ec.Amount < totalEcCost)
+				Lib.Proto.Set(cryoSnapshot, "CoolingEnabled", false);
 
 			return brokerTitle;
 		}

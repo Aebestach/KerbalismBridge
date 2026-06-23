@@ -100,7 +100,7 @@ namespace KerbalismFFT
 					if (engineModule.Charging && !engineModule.Charged)
 					{
 						ResourceInfo ec = KERBALISM.ResourceCache.GetResource(vessel, "ElectricCharge");
-						hasPower = ec.Amount >= engineModule.ChargeRate * TimeWarp.fixedDeltaTime;
+						hasPower = FusionReactorResourceSim.HasChargeOperatingPower(ec, engineModule.ChargeRate);
 					}
 					FusionReactorResourceSim.SyncLoadedChargeUI(engineModule, hasPower);
 				}

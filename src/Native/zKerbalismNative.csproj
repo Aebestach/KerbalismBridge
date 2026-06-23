@@ -77,6 +77,7 @@
     <Compile Include="SystemHeat\Fission\SHFissionEngineKerbalismUpdater.cs" />
     <Compile Include="SystemHeat\Fission\SHFissionReactorKerbalismUpdater.cs" />
     <Compile Include="SystemHeat\Harmony\SystemHeatHarmonyPatches.cs" />
+    <Compile Include="SystemHeat\Harmony\SHNativeConverterInputHarmony.cs" />
     <Compile Include="SystemHeat\Harvesters\SystemHeatHarvesterKerbalismUpdater.cs" />
     <Compile Include="SystemHeat\Radiators\SHRadiatorKerbalism.cs" />
   </ItemGroup>

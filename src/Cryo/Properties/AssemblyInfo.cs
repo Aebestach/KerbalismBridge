@@ -6,5 +6,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("KerbalismCryo")]
 [assembly: ComVisible(false)]
 [assembly: Guid("a3c8e1f4-7b2d-4e91-9c56-1d0f8a6b2e73")]
-[assembly: AssemblyVersion("1.0.4.0")]
-[assembly: AssemblyFileVersion("1.0.4.0")]
+[assembly: AssemblyVersion("1.0.5.0")]
+[assembly: AssemblyFileVersion("1.0.5.0")]
