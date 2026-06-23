@@ -42,6 +42,8 @@ namespace KerbalismFFT
 
 				PatchPrefix(harmony, patchMethod, harmonyMethodType, typeof(FusionReactor), "GeneratePower", typeof(Patch_FusionReactor_GeneratePower), nameof(Patch_FusionReactor_GeneratePower.Prefix));
 				PatchPrefix(harmony, patchMethod, harmonyMethodType, typeof(FusionReactor), "RechargeCapacitors", typeof(Patch_FusionReactor_RechargeCapacitors), nameof(Patch_FusionReactor_RechargeCapacitors.Prefix));
+				PatchPrefix(harmony, patchMethod, harmonyMethodType, typeof(ModuleAntimatterTank), "ConsumeCharge", typeof(Patch_ModuleAntimatterTank_KerbalismManaged), nameof(Patch_ModuleAntimatterTank_KerbalismManaged.Prefix));
+				PatchPrefix(harmony, patchMethod, harmonyMethodType, typeof(ModuleAntimatterTank), "DoCatchup", typeof(Patch_ModuleAntimatterTank_KerbalismManaged), nameof(Patch_ModuleAntimatterTank_KerbalismManaged.Prefix));
 				PatchPostfix(harmony, patchMethod, harmonyMethodType, typeof(Computer), "GetModuleDevices", typeof(Patch_Computer_GetModuleDevices), nameof(Patch_Computer_GetModuleDevices.Postfix));
 
 				patchesApplied = true;
@@ -130,6 +132,14 @@ namespace KerbalismFFT
 		{
 			return __instance.part.FindModuleImplementing<FFTFusionReactorKerbalismUpdater>() == null
 				&& __instance.part.FindModuleImplementing<FFTFusionEngineKerbalismUpdater>() == null;
+		}
+	}
+
+	internal static class Patch_ModuleAntimatterTank_KerbalismManaged
+	{
+		internal static bool Prefix(ModuleAntimatterTank __instance)
+		{
+			return !(__instance is FFTModuleAntimatterTankKerbalism);
 		}
 	}
 }

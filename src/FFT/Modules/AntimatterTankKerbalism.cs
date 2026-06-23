@@ -60,11 +60,12 @@ namespace KerbalismFFT
 				float containmentCost = tank.ContainmentCost;
 				if (containmentCost > 0f)
 				{
-					double ecNeed = containmentCost * elapsed_s;
-					double ec = KERBALISM.ResourceCache.Get(v).GetResource(v, "ElectricCharge").Amount;
+					ResourceInfo ec = KERBALISM.ResourceCache.Get(v).GetResource(v, "ElectricCharge");
 					resourceChangeRequest.Add(new KeyValuePair<string, double>("ElectricCharge", -containmentCost));
 
-					if (ec < ecNeed)
+					// Kerbalism applies the rate over elapsed_s separately; match loaded
+					// FixedUpdate which only checks one physics step of containment cost.
+					if (ec.Amount < containmentCost)
 					{
 						if (FFTSettings.AntimatterBackgroundDetonation)
 						{
@@ -127,26 +128,11 @@ namespace KerbalismFFT
 			{
 				ResourceInfo ec = KERBALISM.ResourceCache.GetResource(vessel, "ElectricCharge");
 				double chargeRequest = ContainmentCost * TimeWarp.fixedDeltaTime;
-				ec.Consume(chargeRequest, KERBALISM.ResourceBroker.GetOrCreate(brokerName, KERBALISM.ResourceBroker.BrokerCategory.VesselSystem, brokerTitle));
+				bool powered = ec.Amount >= ContainmentCost;
+				ec.Consume(System.Math.Min(chargeRequest, ec.Amount), KERBALISM.ResourceBroker.GetOrCreate(brokerName, KERBALISM.ResourceBroker.BrokerCategory.VesselSystem, brokerTitle));
+				SetPoweredState(powered);
 			}
 			return brokerTitle;
-		}
-
-		public new void DoCatchup()
-		{
-		}
-
-		protected new void ConsumeCharge()
-		{
-			if (ContainmentEnabled && ContainmentCost > 0f)
-			{
-				ResourceInfo ec = KERBALISM.ResourceCache.GetResource(vessel, "ElectricCharge");
-				double chargeRequest = ContainmentCost * TimeWarp.fixedDeltaTime;
-				if (ec.Amount < chargeRequest)
-					SetPoweredState(false);
-				else
-					SetPoweredState(true);
-			}
 		}
 	}
 }
