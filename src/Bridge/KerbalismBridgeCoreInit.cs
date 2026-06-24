@@ -9,6 +9,9 @@ namespace KerbalismBridge
 		{
 			GameEvents.onGameSceneSwitchRequested.Add(OnGameSceneSwitchRequested);
 			GameEvents.onGamePause.Add(OnGamePauseCapture);
+			GameEvents.onPartPack.Add(OnPartPackCapture);
+			GameEvents.onVesselSwitching.Add(OnVesselSwitchingCapture);
+			GameEvents.onVesselSwitchingToUnloaded.Add(OnVesselSwitchingCapture);
 			BridgeUtils.Log("Kerbalism Bridge runtime loaded.");
 		}
 
@@ -22,6 +25,18 @@ namespace KerbalismBridge
 		{
 			if (HighLogic.LoadedSceneIsFlight)
 				SystemHeatBackgroundThermal.CaptureAllLoadedFissionReactors();
+		}
+
+		private static void OnPartPackCapture(Part part)
+		{
+			if (HighLogic.LoadedSceneIsFlight)
+				SystemHeatBackgroundThermal.CaptureLoadedFissionReactorState(part);
+		}
+
+		private static void OnVesselSwitchingCapture(Vessel from, Vessel to)
+		{
+			if (HighLogic.LoadedSceneIsFlight)
+				SystemHeatBackgroundThermal.CaptureLoadedTemperatures(from);
 		}
 	}
 }
