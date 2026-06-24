@@ -10,6 +10,10 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.6] - 2026-06-24
+
+- **Fix:** SystemHeat background loop thermal sim (**zKerbalismBridge**): capture NFE fission reactor running state when individual parts pack and snapshot loop temperatures when switching away from a loaded vessel; background automation and thermal sim no longer lose reactor/throttle state after vessel switch.
+
 ### [1.0.5] - 2026-06-23
 
 - **Fix:** High timewarp false EC / input shutdown across Layer B modules: CryoTanks active cooling, FFT fusion reactor/engine charging, NFE discharge capacitors, and SpaceDust harvesters now pre-check per-second EC instead of `rate × fixedDeltaTime` / `elapsed_s`.
@@ -57,6 +61,11 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismBridge
+
+### [1.0.6] - 2026-06-24
+
+- **Fix:** `KerbalismBridgeCoreInit` hooks `onPartPack`, `onVesselSwitching`, and `onVesselSwitchingToUnloaded` to call `CaptureLoadedFissionReactorState` per part and `CaptureLoadedTemperatures` on the departing vessel before unload.
+- **Fix:** `CaptureLoadedFissionReactorState` is public with `Enabled` / null guards so part-pack capture can reuse the same proto sync path as scene-switch capture.
 
 ### [1.0.4] - 2026-06-22
 
