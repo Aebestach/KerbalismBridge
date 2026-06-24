@@ -66,8 +66,11 @@ namespace KerbalismBridge
 		/// Sync NFE fission ProcessController state into proto before the vessel packs so background
 		/// automation and Profile modifiers see the same running flag as the loaded part.
 		/// </summary>
-		private static void CaptureLoadedFissionReactorState(Part part)
+		public static void CaptureLoadedFissionReactorState(Part part)
 		{
+			if (!Enabled || part == null || part.protoPartSnapshot == null)
+				return;
+
 			foreach (PartModule process in part.Modules)
 			{
 				if (process == null || process.moduleName != "ProcessControllerSystemHeat")
