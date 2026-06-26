@@ -10,6 +10,14 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.7] - 2026-06-26
+
+- **Fix:** SystemHeat background fission-reactor capture (**zKerbalismBridge**): register KSP `GameEvents` from a MainMenu `KSPAddon` after startup instead of PluginHost Instantly init — avoids subscribing before handlers exist.
+- **Enhancement:** Sterling Systems integration (**zKerbalismSterlingSystems**): ship built-in `Localization/` (`en-us`, `zh-cn`) for Profile, converter, reactor, and reliability UI strings.
+- **Enhancement:** World Power solar thermal collectors and `sth1` TEC B9PartSwitch quality modes; dedupe `MAECAlumina` B9 tank type (**zKerbalismSterlingSystems**).
+- **Balance:** Sterling PBR pebble consumption rate corrected (10× overconsumption) (**zKerbalismSterlingSystems**).
+- **Fix:** Sterling engine radiation emitters use thrust/ISP/mass formula with per-class tuning (**zKerbalismSterlingSystems**).
+
 ### [1.0.6] - 2026-06-24
 
 - **Fix:** SystemHeat background loop thermal sim (**zKerbalismBridge**): capture NFE fission reactor running state when individual parts pack and snapshot loop temperatures when switching away from a loaded vessel; background automation and thermal sim no longer lose reactor/throttle state after vessel switch.
@@ -61,6 +69,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismBridge
+
+### [1.0.7] - 2026-06-26
+
+- **Fix:** `KerbalismBridgeRuntime` (`KSPAddon.Startup.MainMenu`) defers `GameEvents` subscription until handlers are available (`KerbalismBridgeGameEvents.TryRegister`); fission reactor and loop temperature capture hooks moved out of `KerbalismBridgeCoreInit.Initialize`.
 
 ### [1.0.6] - 2026-06-24
 
@@ -221,6 +233,14 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismSterlingSystems
+
+### [1.0.1] - 2026-06-26
+
+- **Enhancement:** Ship `Localization/en-us.cfg` and `Localization/zh-cn.cfg`; Profile, converter, reactor, windmill, and reliability UI strings use `#KERBALISM_BranchLoc_*` keys.
+- **Enhancement:** World Power solar thermal collectors use `ThermalPanelFixer` instead of generic solar EC; `strl-worldpower-sth1` TEC converter with B9PartSwitch Low/High quality subtypes.
+- **Fix:** Dedupe `MAECAlumina` B9 tank type to avoid duplicate tank definition conflicts.
+- **Balance:** `SterlingPBR` process pebble rate `0.0000494473` → `0.00000494473`.
+- **Fix:** `Radiation.cfg` engine emitters derived from `(Thrust × ISP) / mass³` with per-class tuning (gas-core exception).
 
 ### [1.0.0] - 2026-06-07
 

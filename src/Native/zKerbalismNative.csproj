@@ -10,6 +10,7 @@
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <DeployOutputPath>$(MSBuildProjectDirectory)\..\..\GameData\zKerbalismNative\PluginData\</DeployOutputPath>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,29 +29,29 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\KSPDLL\others\0Harmony.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\0. OtherPlugins\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Kerbalism">
-      <HintPath>..\..\..\..\KSPDLL\others\Kerbalism.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\0. OtherPlugins\Kerbalism.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SystemHeat">
-      <HintPath>..\..\..\..\KSPDLL\others\SystemHeat.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\0. OtherPlugins\SystemHeat.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\KSPDLL\KSP_x64_Data\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\..\00. KSP DEVELOP PLUGINS\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

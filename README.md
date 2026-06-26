@@ -69,7 +69,7 @@ Bridge does **not** use one integration style for every part. Pick **one** layer
 | `zKerbalismCryo` | CryoTanks + SystemHeat cryogenic tanks |
 | `zKerbalismNFE` | Near Future Electrical — discharge capacitors |
 | `zKerbalismSpaceDust` | SpaceDust harvesters |
-| `zKerbalismSterlingSystems` | Sterling Systems — fission, converters, engines, and more (now maintained here; thanks to [JadeOfMaar](https://github.com/JadeOfMaar) and [NerdyBoy](https://github.com/NerdyBoy709) for their earlier work on SterlingSystemsKerbalism) |
+| `zKerbalismSterlingSystems` | Sterling Systems — fission, converters, engines, and more; **ships its own `Localization/`** (pairs with Kerbalism **master**, not `feature/systemheat` or in-mod `SterlingSystemsKerbalism`) |
 
 ---
 
