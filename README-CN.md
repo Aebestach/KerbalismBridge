@@ -69,7 +69,7 @@ Bridge **不会**对所有部件使用同一种整合方式。每个部件只选
 | `zKerbalismCryo` | CryoTanks + SystemHeat 低温罐 |
 | `zKerbalismNFE` | Near Future Electrical — 放电电容 |
 | `zKerbalismSpaceDust` | SpaceDust 采集器 |
-| `zKerbalismSterlingSystems` | Sterling Systems — 裂变、转换器、发动机等（现由本仓库维护；感谢 [JadeOfMaar](https://github.com/JadeOfMaar)、[NerdyBoy](https://github.com/NerdyBoy709) 此前对 SterlingSystemsKerbalism 的编写） |
+| `zKerbalismSterlingSystems` | Sterling Systems — 裂变、转换器、发动机等；**自带 `Localization/`**（与 Kerbalism **master** 搭配，不依赖 `feature/systemheat` 或 mod 内的 `SterlingSystemsKerbalism`） |
 
 ---
 
