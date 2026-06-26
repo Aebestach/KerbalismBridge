@@ -10,6 +10,12 @@ Installation, dependencies, and package overview: [README.md](README.md) · [REA
 
 Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/KerbalismSystemHeat) and [judicator/KerbalismFFT](https://github.com/judicator/KerbalismFFT). Maintained at [Aebestach/KerbalismBridge](https://github.com/Aebestach/KerbalismBridge). Not an official judicator release.
 
+### [1.0.8] - 2026-06-26
+
+- **Feature:** Planetary Base Inc. KPBS nuclear reactor (`KKAOSS_Nuclear_Reactor`) Kerbalism integration via `ProcessControllerSystemHeat` Layer A — unified `_Nukereactor` profile, SystemHeat loop, throttle, and reliability (**zKerbalismProcess**).
+- **Fix:** exclude `KKAOSS_Nuclear_Reactor` from native Layer B `SystemHeatFissionReactorKerbalismUpdater` so KPBS uses the Layer A path only (**zKerbalismNative**).
+- **Fix:** Sterling KLUSTR (`strl-rctrkrusty`) part cost scales EnrichedUranium fuel by `refPower` instead of tank `maxAmount` (**zKerbalismSterlingSystems**).
+
 ### [1.0.7] - 2026-06-26
 
 - **Fix:** SystemHeat background fission-reactor capture (**zKerbalismBridge**): register KSP `GameEvents` from a MainMenu `KSPAddon` after startup instead of PluginHost Instantly init — avoids subscribing before handlers exist.
@@ -96,6 +102,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 
 ## zKerbalismProcess
 
+### [1.0.4] - 2026-06-26
+
+- **Feature:** `ModsSupport/PlanetaryBaseInc.cfg` — KPBS `KKAOSS_Nuclear_Reactor` migrated from stock `ProcessController` (`_KPBSNukereactor`) to `ProcessControllerSystemHeat` (`_Nukereactor`); adds `ModuleSystemHeat` loop, power throttle, meltdown curves, and `Reliability` typed to `ProcessControllerSystemHeat`.
+
 ### [1.0.3] - 2026-06-10
 
 - **Fix:** `SystemHeatRadiators.cfg` adds `ElectricCharge` `RESOURCE` when converting stock `ModuleActiveRadiator` parts (SystemHeat expects at least one module input resource).
@@ -115,6 +125,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismNative
+
+### [1.0.8] - 2026-06-26
+
+- **Fix:** `SystemHeatFissionReactors.cfg` excludes `KKAOSS_Nuclear_Reactor` from generic Layer B fission-reactor updater/planner patches; KPBS reactor is handled by **zKerbalismProcess** Layer A instead.
 
 ### [1.0.5] - 2026-06-23
 
@@ -233,6 +247,10 @@ Community fork of [judicator/KerbalismSystemHeat](https://github.com/judicator/K
 ---
 
 ## zKerbalismSterlingSystems
+
+### [1.0.2] - 2026-06-26
+
+- **Fix:** `strl-rctrkrusty` (KLUSTR) `@cost` fuel surcharge uses `70 × refPower × EnrichedUranium unitCost` instead of tank `maxAmount`, matching Kerbalism fuel-capacity scaling.
 
 ### [1.0.1] - 2026-06-26
 
