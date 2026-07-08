@@ -6,12 +6,12 @@ using SystemHeat;
 namespace KerbalismNative
 {
 	/// <summary>
-	/// While Kerbalism owns SH native converter/harvester resource IO, hide input rates from stock
-	/// ModuleResourceConverter input checks (ratio × fixedDeltaTime) so high timewarp does not stop modules.
+	/// While Kerbalism owns SH native converter/harvester resource IO, hide stock
+	/// resource rates during native FixedUpdateFlight so native side effects still run.
 	/// </summary>
 	internal static class SHNativeConverterInputHarmony
 	{
-		internal struct InputListRateBackup
+		internal struct ResourceListRateBackup
 		{
 			internal double[] Ratios;
 			internal bool Active;
@@ -19,67 +19,93 @@ namespace KerbalismNative
 			internal bool HasBackup => Active && Ratios != null;
 		}
 
-		internal static bool ShouldZeroInputs(PartModule module)
+		internal struct ConverterRateBackup
+		{
+			internal ResourceListRateBackup Inputs;
+			internal ResourceListRateBackup Outputs;
+
+			internal bool HasBackup => Inputs.HasBackup || Outputs.HasBackup;
+		}
+
+		internal static bool ShouldZeroStockResourceRates(PartModule module)
 		{
 			if (module == null || module.part == null || !Lib.IsFlight())
 				return false;
 
-			SystemHeatConverterKerbalismUpdater converterUpdater =
-				module.part.FindModuleImplementing<SystemHeatConverterKerbalismUpdater>();
-			if (converterUpdater != null
-				&& module is ModuleSystemHeatConverter shConverter
-				&& converterUpdater.OwnsConverter(shConverter))
+			if (module is ModuleSystemHeatConverter shConverter)
 			{
-				return true;
+				var updaters = module.part.FindModulesImplementing<SystemHeatConverterKerbalismUpdater>();
+				for (int i = 0; i < updaters.Count; i++)
+				{
+					if (updaters[i].OwnsConverter(shConverter))
+						return true;
+				}
 			}
 
-			SystemHeatHarvesterKerbalismUpdater harvesterUpdater =
-				module.part.FindModuleImplementing<SystemHeatHarvesterKerbalismUpdater>();
-			if (harvesterUpdater != null
-				&& module is ModuleSystemHeatHarvester shHarvester
-				&& harvesterUpdater.OwnsHarvester(shHarvester))
+			if (module is ModuleSystemHeatHarvester shHarvester)
 			{
-				return true;
+				var updaters = module.part.FindModulesImplementing<SystemHeatHarvesterKerbalismUpdater>();
+				for (int i = 0; i < updaters.Count; i++)
+				{
+					if (updaters[i].OwnsHarvester(shHarvester))
+						return true;
+				}
 			}
 
 			return false;
 		}
 
-		internal static InputListRateBackup ZeroInputList(List<ResourceRatio> inputList)
+		internal static ResourceListRateBackup ZeroResourceList(List<ResourceRatio> resourceList)
 		{
-			if (inputList == null || inputList.Count == 0)
+			if (resourceList == null || resourceList.Count == 0)
 				return default;
 
-			var backup = new InputListRateBackup
+			var backup = new ResourceListRateBackup
 			{
-				Ratios = new double[inputList.Count],
+				Ratios = new double[resourceList.Count],
 				Active = true
 			};
 
-			for (int i = 0; i < inputList.Count; i++)
+			for (int i = 0; i < resourceList.Count; i++)
 			{
-				ResourceRatio entry = inputList[i];
+				ResourceRatio entry = resourceList[i];
 				backup.Ratios[i] = entry.Ratio;
 				entry.Ratio = 0.0;
-				inputList[i] = entry;
+				resourceList[i] = entry;
 			}
 
 			return backup;
 		}
 
-		internal static void RestoreInputList(List<ResourceRatio> inputList, ref InputListRateBackup backup)
+		internal static ConverterRateBackup ZeroConverterLists(ModuleSystemHeatConverter converter)
 		{
-			if (!backup.HasBackup || inputList == null)
+			return new ConverterRateBackup
+			{
+				Inputs = ZeroResourceList(converter.inputList),
+				Outputs = ZeroResourceList(converter.outputList)
+			};
+		}
+
+		internal static void RestoreResourceList(List<ResourceRatio> resourceList, ref ResourceListRateBackup backup)
+		{
+			if (!backup.HasBackup || resourceList == null)
 				return;
 
-			int count = System.Math.Min(inputList.Count, backup.Ratios.Length);
+			int count = System.Math.Min(resourceList.Count, backup.Ratios.Length);
 			for (int i = 0; i < count; i++)
 			{
-				ResourceRatio entry = inputList[i];
+				ResourceRatio entry = resourceList[i];
 				entry.Ratio = backup.Ratios[i];
-				inputList[i] = entry;
+				resourceList[i] = entry;
 			}
 
+			backup = default;
+		}
+
+		internal static void RestoreConverterLists(ModuleSystemHeatConverter converter, ref ConverterRateBackup backup)
+		{
+			RestoreResourceList(converter.inputList, ref backup.Inputs);
+			RestoreResourceList(converter.outputList, ref backup.Outputs);
 			backup = default;
 		}
 	}
@@ -87,40 +113,40 @@ namespace KerbalismNative
 	[HarmonyPatch(typeof(ModuleSystemHeatConverter), "FixedUpdateFlight")]
 	internal static class Patch_SystemHeatConverter_FixedUpdateFlight
 	{
-		private static void Prefix(ModuleSystemHeatConverter __instance, ref SHNativeConverterInputHarmony.InputListRateBackup __state)
+		private static void Prefix(ModuleSystemHeatConverter __instance, ref SHNativeConverterInputHarmony.ConverterRateBackup __state)
 		{
-			if (!SHNativeConverterInputHarmony.ShouldZeroInputs(__instance))
+			if (!SHNativeConverterInputHarmony.ShouldZeroStockResourceRates(__instance))
 				return;
 
-			__state = SHNativeConverterInputHarmony.ZeroInputList(__instance.inputList);
+			__state = SHNativeConverterInputHarmony.ZeroConverterLists(__instance);
 		}
 
-		private static void Postfix(ModuleSystemHeatConverter __instance, ref SHNativeConverterInputHarmony.InputListRateBackup __state)
+		private static void Postfix(ModuleSystemHeatConverter __instance, ref SHNativeConverterInputHarmony.ConverterRateBackup __state)
 		{
 			if (!__state.HasBackup)
 				return;
 
-			SHNativeConverterInputHarmony.RestoreInputList(__instance.inputList, ref __state);
+			SHNativeConverterInputHarmony.RestoreConverterLists(__instance, ref __state);
 		}
 	}
 
 	[HarmonyPatch(typeof(ModuleSystemHeatHarvester), "FixedUpdateFlight")]
 	internal static class Patch_SystemHeatHarvester_FixedUpdateFlight
 	{
-		private static void Prefix(ModuleSystemHeatHarvester __instance, ref SHNativeConverterInputHarmony.InputListRateBackup __state)
+		private static void Prefix(ModuleSystemHeatHarvester __instance, ref SHNativeConverterInputHarmony.ResourceListRateBackup __state)
 		{
-			if (!SHNativeConverterInputHarmony.ShouldZeroInputs(__instance))
+			if (!SHNativeConverterInputHarmony.ShouldZeroStockResourceRates(__instance))
 				return;
 
-			__state = SHNativeConverterInputHarmony.ZeroInputList(__instance.inputList);
+			__state = SHNativeConverterInputHarmony.ZeroResourceList(__instance.inputList);
 		}
 
-		private static void Postfix(ModuleSystemHeatHarvester __instance, ref SHNativeConverterInputHarmony.InputListRateBackup __state)
+		private static void Postfix(ModuleSystemHeatHarvester __instance, ref SHNativeConverterInputHarmony.ResourceListRateBackup __state)
 		{
 			if (!__state.HasBackup)
 				return;
 
-			SHNativeConverterInputHarmony.RestoreInputList(__instance.inputList, ref __state);
+			SHNativeConverterInputHarmony.RestoreResourceList(__instance.inputList, ref __state);
 		}
 	}
 }
