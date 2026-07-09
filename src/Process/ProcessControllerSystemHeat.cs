@@ -512,6 +512,13 @@ namespace KerbalismProcess
             if (broken)
                 return;
 
+            // Defensive: if this loaded reactor's FixedUpdate runs before the SystemHeatVessel Harmony
+            // patch this frame, stabilize the loaded hyperwarp loop first so core damage reads a sane loop
+            // temperature instead of a stale-flux spike. Covers the brief loaded+unpacked catch-up frame too
+            // (no packed requirement); the stabilizer self-gates to fixedDt >= 10s. Idempotent per vessel/UT.
+            if (IsFissionReactor() && vessel != null && vessel.loaded)
+                SystemHeatBackgroundThermal.EnsureLoadedHyperwarpStabilized(vessel, TimeWarp.fixedDeltaTime);
+
             float loopK = heatModule.currentLoopTemperature;
             ApplyCoreDamage(loopK, TimeWarp.fixedDeltaTime);
             UpdateCoreStatus();

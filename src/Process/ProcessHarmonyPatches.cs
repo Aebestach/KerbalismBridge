@@ -1,6 +1,7 @@
 using HarmonyLib;
 using KERBALISM;
 using KerbalismBridge;
+using SystemHeat;
 
 namespace KerbalismProcess
 {
@@ -117,6 +118,31 @@ namespace KerbalismProcess
 		{
 			if (__instance is HarvesterSystemHeat && Lib.IsEditor())
 				Lib.RefreshPlanner();
+		}
+	}
+
+	// Stock SystemHeatVessel.FixedUpdate() (Simulator.Simulate()) is allowed to run normally in every
+	// state, so SystemHeat keeps all its own loop bookkeeping (consumedSystemFlux, nominal temp,
+	// convection, allocation). Simulate() applies no irreversible side effects (core damage / shutdown
+	// come from the modules, e.g. ProcessControllerSystemHeat), so it is safe to let the known hyperwarp
+	// stale-flux temperature spike happen inside the stock tick and correct it immediately after. The
+	// postfix: (a) refreshes the last-good anchor on sane loaded+unpacked frames, and (b) hands the active
+	// vessel to the bridge stabilizer, which self-gates to the loaded hyperwarp scope (fixedDt >= 10 s,
+	// packed or the brief unpacked catch-up frame).
+	[HarmonyPatch(typeof(SystemHeatVessel), "FixedUpdate")]
+	internal static class Patch_SystemHeatVessel_FixedUpdate
+	{
+		private static void Postfix(SystemHeatVessel __instance)
+		{
+			Vessel v = Traverse.Create(__instance).Field("vessel").GetValue<Vessel>();
+			if (v == null)
+				return;
+
+			// Rolling last-good anchor for the active loaded/unpacked vessel on a sane step (no-op while packed).
+			SystemHeatBackgroundThermal.CaptureLoadedAnchorIfSane(v);
+
+			// Correct the loaded hyperwarp spike after stock has run (self-gated to large fixedDeltaTime).
+			SystemHeatBackgroundThermal.StabilizeLoadedHyperwarpTransition(v, TimeWarp.fixedDeltaTime);
 		}
 	}
 }

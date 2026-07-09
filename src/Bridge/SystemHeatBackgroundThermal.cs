@@ -14,6 +14,7 @@ namespace KerbalismBridge
 	public static class SystemHeatBackgroundThermal
 	{
 		private static readonly Dictionary<Guid, double> lastRunTime = new Dictionary<Guid, double>();
+		private static readonly Dictionary<Guid, double> lastLoadedHyperwarpRun = new Dictionary<Guid, double>();
 
 		private static readonly string[] FusionReactorModuleNames = { "FusionReactor", "ModuleFusionEngine" };
 
@@ -24,6 +25,13 @@ namespace KerbalismBridge
 		private const float CoolantDensity = 1f;
 		private const float CoolantHeatCapacity = 4.18f;
 		private const float MaxThermalStepSeconds = 10f;
+		/// <summary>
+		/// Single boundary for both loaded-hyperwarp anchor capture and stabilization. A loaded frame
+		/// at/above this physics step is a hyperwarp transient whose loop state cannot be trusted:
+		/// anchor capture must skip it, and the stabilizer must correct it. Below this, per-tick
+		/// stale-flux integration is small enough that stock SystemHeat is fine and both paths are
+		/// no-ops, so normal/low-warp physics is untouched.</summary>
+		internal const float LoadedHyperwarpStabilizeMinFixedDt = 10f;
 		private const string FluxAnchorKwField = "backgroundFluxAnchorKw";
 		private const string FluxAnchorTemperatureField = "backgroundFluxAnchorTemperature";
 		private const string FluxAnchorValidField = "backgroundFluxAnchorValid";
@@ -243,6 +251,127 @@ namespace KerbalismBridge
 			SimulateVessel(v, (float)elapsed_s);
 		}
 
+		/// <summary>
+		/// Correct the active vessel's SystemHeat loop state during a loaded hyperwarp tick (at/above
+		/// LoadedHyperwarpStabilizeMinFixedDt, 10s). Covers both the loaded+packed state and the brief
+		/// loaded+unpacked catch-up frame that appears during ramp transitions (observed fixedDt ~248 s
+		/// while still unpacked). Normally invoked from the SystemHeatVessel postfix AFTER stock has run
+		/// (stock keeps its own bookkeeping: consumedSystemFlux, nominal temp, convection, allocation);
+		/// also safe to call from the ProcessController seatbelt BEFORE stock runs, for Unity update-order
+		/// defense. During a direct-hyperwarp / on-rails transition stock integrates the cached (stale)
+		/// ModuleSystemHeat.totalSystemFlux over a huge TimeWarp.fixedDeltaTime and spikes the loop to tens
+		/// of thousands of K; this reuses the background solver (dynamic radiator rejection + last-good flux
+		/// anchor) to overwrite the spiked loop temperature/flux on the live ModuleSystemHeat modules and
+		/// their HeatLoop. The large-dt scope is enforced here so every caller obeys the same hyperwarp bound.
+		/// Proto core damage / shutdown effects are intentionally NOT applied here; the live modules
+		/// (e.g. ProcessControllerSystemHeat) apply their own effects once they read the stabilized temp.
+		/// Idempotent per vessel/UT.
+		/// </summary>
+		public static void StabilizeLoadedHyperwarpTransition(Vessel v, double elapsed_s)
+		{
+			// Deliberately scoped to ALL active loaded SystemHeat loops (not just fission): the stale-flux
+			// spike is a property of the loaded loop integration over a huge fixedDeltaTime, so any
+			// participant -- converters, harvesters, ISRU -- can be pushed to a false temperature and trip
+			// overheat/emergency-shutdown. Fission reactors are only the most destructive case (irreversible
+			// core damage). Correcting the whole loop keeps all participants consistent.
+			if (!Enabled || v == null || elapsed_s < LoadedHyperwarpStabilizeMinFixedDt)
+				return;
+			if (!v.loaded)
+				return;
+			if (!HighLogic.LoadedSceneIsFlight || FlightGlobals.ActiveVessel == null || FlightGlobals.ActiveVessel.id != v.id)
+				return;
+			if (v.protoVessel == null)
+				return;
+
+			double now = Planetarium.GetUniversalTime();
+			if (lastLoadedHyperwarpRun.TryGetValue(v.id, out double last) && last == now)
+			{
+				// Already stabilized this vessel/UT (postfix + reactor seatbelt + multiple reactors);
+				// re-assert onto the live modules in case stock sim or another module reset them this frame.
+				WriteBackLoadedLoopState(v);
+				return;
+			}
+			lastLoadedHyperwarpRun[v.id] = now;
+
+			SimulateVessel(v, (float)elapsed_s, applyThermalEffects: false);
+			WriteBackLoadedLoopState(v);
+		}
+
+		/// <summary>
+		/// Idempotent defensive stabilize for the active loaded vessel during a hyperwarp tick. Safe to
+		/// call from loaded module code (e.g. before a fission reactor reads loop temperature for core
+		/// damage) in case Unity update order runs the module before the SystemHeatVessel Harmony postfix.
+		/// Obeys the same large-dt hyperwarp scope as the postfix (the guard lives in
+		/// StabilizeLoadedHyperwarpTransition).
+		/// </summary>
+		public static void EnsureLoadedHyperwarpStabilized(Vessel v, double elapsed_s)
+		{
+			StabilizeLoadedHyperwarpTransition(v, elapsed_s);
+		}
+
+		/// <summary>
+		/// Rolling last-good anchor capture for the active loaded UNPACKED vessel on a sane physics step.
+		/// Called from the SystemHeatVessel postfix after the stock sim runs, so the flux anchor the
+		/// loaded hyperwarp stabilizer freezes to is always the most recent healthy loaded equilibrium and is
+		/// never overwritten by a hyperwarp-corrupted frame.
+		/// </summary>
+		public static void CaptureLoadedAnchorIfSane(Vessel v)
+		{
+			if (!Enabled || v == null || !v.loaded || v.packed)
+				return;
+			if (!HighLogic.LoadedSceneIsFlight)
+				return;
+			if (FlightGlobals.ActiveVessel == null || FlightGlobals.ActiveVessel.id != v.id)
+				return;
+			if (TimeWarp.fixedDeltaTime >= LoadedHyperwarpStabilizeMinFixedDt)
+				return;
+
+			CaptureLoadedTemperatures(v);
+		}
+
+		/// <summary>Copy the solver's proto loop temperature/flux back onto the live ModuleSystemHeat modules.</summary>
+		private static void WriteBackLoadedLoopState(Vessel v)
+		{
+			if (v == null || !v.loaded || v.parts == null)
+				return;
+
+			foreach (Part part in v.parts)
+			{
+				if (part == null || part.protoPartSnapshot == null)
+					continue;
+
+				foreach (PartModule module in part.Modules)
+				{
+					if (module == null || !IsLoadedHeatLoopModule(module))
+						continue;
+
+					ProtoPartModuleSnapshot protoModule = FindMatchingLoadedHeatModuleSnapshot(part.protoPartSnapshot, module);
+					if (protoModule == null)
+						continue;
+
+					float temperature = Lib.Proto.GetFloat(protoModule, "currentLoopTemperature");
+					float flux = Lib.Proto.GetFloat(protoModule, "currentLoopFlux");
+					if (temperature > 0f)
+						BridgeSystemHeatAccess.Set(module, "currentLoopTemperature", temperature);
+					BridgeSystemHeatAccess.Set(module, "currentLoopFlux", flux);
+
+					// Correct the live HeatLoop too, so anything reading Loop.Temperature/NetFlux this frame
+					// (before stock recomputes next frame) sees the stabilized value. Stock still owns
+					// consumedSystemFlux / nominal temp / convection; we only override the spiked temp+flux.
+					if (module is ModuleSystemHeat sh)
+					{
+						HeatLoop loop = sh.Loop;
+						if (loop != null)
+						{
+							if (temperature > 0f)
+								loop.Temperature = temperature;
+							loop.NetFlux = flux;
+						}
+					}
+				}
+			}
+		}
+
 		public static void SyncFrozenProcessReactor(Vessel v, ProtoPartSnapshot part, ProtoPartModuleSnapshot module, PartModule processPrefab, Part partPrefab, double elapsed_s)
 		{
 			if (v == null || part == null || module == null || partPrefab == null || v.loaded)
@@ -357,7 +486,7 @@ namespace KerbalismBridge
 			internal PartModule prefab;
 		}
 
-		private static void SimulateVessel(Vessel v, float elapsed_s)
+		private static void SimulateVessel(Vessel v, float elapsed_s, bool applyThermalEffects = true)
 		{
 			var loops = new Dictionary<int, LoopState>();
 			var riskLoopIds = new HashSet<int>();
@@ -665,7 +794,10 @@ namespace KerbalismBridge
 			foreach (LoopState loop in loops.Values)
 				SyncLoopNetFlux(loop);
 
-			ApplyHeatSinkStorage(loops, elapsed_s);
+			// Heat-sink storage mutates persistent proto sink state; skip it during loaded hyperwarp
+			// stabilization (applyThermalEffects == false) so we never write proto-only side effects.
+			if (applyThermalEffects)
+				ApplyHeatSinkStorage(loops, elapsed_s);
 
 			foreach (KeyValuePair<int, LoopState> entry in loops)
 			{
@@ -689,7 +821,8 @@ namespace KerbalismBridge
 						Lib.Proto.Set(heatModule, "currentLoopFlux", loop.netFluxKw);
 					}
 
-					ApplyLoopThermalEffects(v, loop, elapsed_s);
+					if (applyThermalEffects)
+						ApplyLoopThermalEffects(v, loop, elapsed_s);
 					continue;
 				}
 
@@ -701,7 +834,8 @@ namespace KerbalismBridge
 					Lib.Proto.Set(heatModule, "currentLoopFlux", loop.netFluxKw);
 				}
 
-				ApplyLoopThermalEffects(v, loop, elapsed_s);
+				if (applyThermalEffects)
+					ApplyLoopThermalEffects(v, loop, elapsed_s);
 			}
 
 		}
