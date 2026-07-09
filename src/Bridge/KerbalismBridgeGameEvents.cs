@@ -17,6 +17,7 @@ namespace KerbalismBridge
 			if (GameEvents.onGameSceneSwitchRequested == null
 				|| GameEvents.onGamePause == null
 				|| GameEvents.onPartPack == null
+				|| GameEvents.onVesselGoOnRails == null
 				|| GameEvents.onVesselSwitching == null
 				|| GameEvents.onVesselSwitchingToUnloaded == null)
 				return false;
@@ -26,6 +27,7 @@ namespace KerbalismBridge
 				GameEvents.onGameSceneSwitchRequested.Add(OnGameSceneSwitchRequested);
 				GameEvents.onGamePause.Add(OnGamePauseCapture);
 				GameEvents.onPartPack.Add(OnPartPackCapture);
+				GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRailsCapture);
 				GameEvents.onVesselSwitching.Add(OnVesselSwitchingCapture);
 				GameEvents.onVesselSwitchingToUnloaded.Add(OnVesselSwitchingCapture);
 			}
@@ -54,6 +56,15 @@ namespace KerbalismBridge
 		{
 			if (HighLogic.LoadedSceneIsFlight)
 				SystemHeatBackgroundThermal.CaptureLoadedFissionReactorState(part);
+		}
+
+		// Anchor the last-good loaded loop temperature/flux at the on-rails (pack) transition, but only on a
+		// sane physics step -- never capture during a hyperwarp transient, which would overwrite the good
+		// anchor with the corrupted spike. The rolling postfix capture provides the anchor otherwise.
+		private static void OnVesselGoOnRailsCapture(Vessel v)
+		{
+			if (HighLogic.LoadedSceneIsFlight && v != null && v.loaded && TimeWarp.fixedDeltaTime < 1000f)
+				SystemHeatBackgroundThermal.CaptureLoadedTemperatures(v);
 		}
 
 		private static void OnVesselSwitchingCapture(Vessel from, Vessel to)
