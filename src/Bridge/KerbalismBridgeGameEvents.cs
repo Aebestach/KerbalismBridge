@@ -58,12 +58,16 @@ namespace KerbalismBridge
 				SystemHeatBackgroundThermal.CaptureLoadedFissionReactorState(part);
 		}
 
-		// Anchor the last-good loaded loop temperature/flux at the on-rails (pack) transition, but only on a
-		// sane physics step -- never capture during a hyperwarp transient, which would overwrite the good
-		// anchor with the corrupted spike. The rolling postfix capture provides the anchor otherwise.
+		// Anchor the last-good loaded loop temperature/flux at the on-rails (pack) transition, but ONLY
+		// below the loaded-hyperwarp stabilization scope. onVesselGoOnRails can fire on a hyperwarp tick
+		// whose loop temperature is already a stale-flux spike; capturing then would overwrite the good
+		// anchor with that spike and make the stabilizer freeze to a corrupted value. At/above the
+		// threshold we rely on the rolling sane anchor captured by the SystemHeatVessel postfix on
+		// loaded+unpacked frames.
 		private static void OnVesselGoOnRailsCapture(Vessel v)
 		{
-			if (HighLogic.LoadedSceneIsFlight && v != null && v.loaded && TimeWarp.fixedDeltaTime < 1000f)
+			if (HighLogic.LoadedSceneIsFlight && v != null && v.loaded
+				&& TimeWarp.fixedDeltaTime < SystemHeatBackgroundThermal.LoadedHyperwarpStabilizeMinFixedDt)
 				SystemHeatBackgroundThermal.CaptureLoadedTemperatures(v);
 		}
 
