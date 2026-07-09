@@ -32,7 +32,9 @@ namespace KerbalismNative
 			if (updater == null || !updater.OwnsConverter(__instance))
 				return true;
 
-			Traverse.Create(__instance).Method("UpdateFlux", result.TimeFactor).GetValue();
+			double timeFactor = result.TimeFactor;
+			__instance.lastTimeFactor = timeFactor;
+			Traverse.Create(__instance).Method("UpdateFlux", timeFactor).GetValue();
 			return false;
 		}
 	}
@@ -46,7 +48,9 @@ namespace KerbalismNative
 			if (updater == null || !updater.OwnsHarvester(__instance))
 				return true;
 
-			Traverse.Create(__instance).Method("UpdateFlux", result.TimeFactor).GetValue();
+			double timeFactor = result.TimeFactor;
+			__instance.lastTimeFactor = timeFactor;
+			Traverse.Create(__instance).Method("UpdateFlux", timeFactor).GetValue();
 			return false;
 		}
 	}

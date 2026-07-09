@@ -108,6 +108,32 @@ namespace KerbalismNative
 			RestoreResourceList(converter.outputList, ref backup.Outputs);
 			backup = default;
 		}
+
+		internal static void SyncConverterWarmupFlux(ModuleSystemHeatConverter converter)
+		{
+			if (converter == null)
+				return;
+
+			// PostProcess runs while the stock resource lists are zeroed. Correct
+			// flux after restore using the real Kerbalism-owned resource state.
+			bool canWarmup = SHNativeConverterResourceSim.CanBootstrapConverterWarmup(converter);
+			if (converter.lastTimeFactor > double.Epsilon)
+			{
+				if (!canWarmup)
+				{
+					converter.lastTimeFactor = 0.0;
+					Traverse.Create(converter).Method("UpdateFlux", converter.lastTimeFactor).GetValue();
+				}
+
+				return;
+			}
+
+			if (!canWarmup)
+				return;
+
+			converter.lastTimeFactor = 1.0;
+			Traverse.Create(converter).Method("UpdateFlux", converter.lastTimeFactor).GetValue();
+		}
 	}
 
 	[HarmonyPatch(typeof(ModuleSystemHeatConverter), "FixedUpdateFlight")]
@@ -127,6 +153,7 @@ namespace KerbalismNative
 				return;
 
 			SHNativeConverterInputHarmony.RestoreConverterLists(__instance, ref __state);
+			SHNativeConverterInputHarmony.SyncConverterWarmupFlux(__instance);
 		}
 	}
 

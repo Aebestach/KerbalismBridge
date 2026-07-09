@@ -27,14 +27,37 @@ namespace KerbalismNative
 			if (inputScale <= double.Epsilon)
 				return brokerTitle;
 
-			double finalScale = scale * inputScale;
+			double efficiency = GetConverterEfficiency(converter);
+			if (efficiency <= double.Epsilon)
+				return brokerTitle;
+
+			double outputScale = GetOutputAvailabilityScale(converter.vessel, converter.outputList, efficiency, scale);
+			if (outputScale <= double.Epsilon)
+				return brokerTitle;
+
+			double finalScale = scale * System.Math.Min(inputScale, outputScale);
 			foreach (ResourceRatio input in converter.inputList)
 				resourceChangeRequest.Add(new KeyValuePair<string, double>(input.ResourceName, -input.Ratio * finalScale));
 
 			foreach (ResourceRatio output in converter.outputList)
-				resourceChangeRequest.Add(new KeyValuePair<string, double>(output.ResourceName, GetConverterEfficiency(converter) * output.Ratio * finalScale));
+				resourceChangeRequest.Add(new KeyValuePair<string, double>(output.ResourceName, efficiency * output.Ratio * finalScale));
 
 			return brokerTitle;
+		}
+
+		internal static bool CanBootstrapConverterWarmup(ModuleSystemHeatConverter converter)
+		{
+			if (converter == null || !converter.IsActivated || !converter.ModuleIsActive())
+				return false;
+
+			if (GetInputAvailabilityScale(converter.vessel, converter.inputList, null, 1.0) <= double.Epsilon)
+				return false;
+
+			double efficiency = GetConverterEfficiency(converter);
+			if (efficiency <= double.Epsilon)
+				return false;
+
+			return GetOutputAvailabilityScale(converter.vessel, converter.outputList, efficiency, 1.0) > double.Epsilon;
 		}
 
 		internal static string AddLoadedHarvesterRates(
@@ -81,6 +104,9 @@ namespace KerbalismNative
 				if (vesselResources != null)
 				{
 					ResourceInfo resource = vesselResources.GetResource(vessel, input.ResourceName);
+					if (resource == null)
+						return 0d;
+
 					available = resource.Amount + resource.Deferred;
 				}
 				else if (availableResources == null || !availableResources.TryGetValue(input.ResourceName, out available))
@@ -93,6 +119,42 @@ namespace KerbalismNative
 			}
 
 			return System.Math.Min(1d, inputScale);
+		}
+
+		private static double GetOutputAvailabilityScale(Vessel vessel, List<ResourceRatio> outputList, double efficiency, double scale)
+		{
+			if (outputList == null || outputList.Count == 0)
+				return 1d;
+
+			if (efficiency <= double.Epsilon || scale <= double.Epsilon)
+				return 0d;
+
+			VesselResources vesselResources = vessel != null ? KERBALISM.ResourceCache.Get(vessel) : null;
+			if (vesselResources == null)
+				return 1d;
+
+			double outputScale = 1d;
+			foreach (ResourceRatio output in outputList)
+			{
+				if (output.DumpExcess || output.Ratio <= double.Epsilon)
+					continue;
+
+				ResourceInfo resource = vesselResources.GetResource(vessel, output.ResourceName);
+				if (resource == null)
+					continue;
+
+				double availableRoom = resource.Capacity - (resource.Amount + resource.Deferred);
+				if (availableRoom <= double.Epsilon)
+					return 0d;
+
+				double requiredRate = efficiency * output.Ratio * scale;
+				double limit = availableRoom / requiredRate;
+				outputScale = System.Math.Min(outputScale, limit);
+				if (outputScale <= double.Epsilon)
+					return 0d;
+			}
+
+			return System.Math.Min(1d, outputScale);
 		}
 
 		internal static void BackgroundUpdateConverter(
